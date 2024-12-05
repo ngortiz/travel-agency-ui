@@ -14,9 +14,7 @@ const Card = styled(MuiCard)`
   margin: 16px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition:
-    transform 0.3s,
-    box-shadow 0.3s;
+  transition: transform 0.3s, box-shadow 0.3s;
   border-radius: 12px;
 
   &:hover {
@@ -91,21 +89,21 @@ const PackageCard: React.FC<
     <Card onClick={onClick}>
       <StyledCardMedia image={image_url} />
       <CardContent>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant='h5' fontWeight='bold'>
           {name}
         </Typography>
         <Typography
-          variant="body2"
-          color="text.secondary"
+          variant='body2'
+          color='text.secondary'
           sx={{ marginBottom: 2 }}
         >
           {description}
         </Typography>
         <PriceAndButtonsContainer>
-          <PriceTypography variant="h6">{sell_price}</PriceTypography>
+          <PriceTypography variant='h6'>US$ {sell_price}</PriceTypography>
           <ButtonContainer>
             <WhatsAppText
-              variant="h6"
+              variant='h6'
               onClick={(e) => {
                 e.stopPropagation();
                 onWhatsApp();

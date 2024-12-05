@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Stack } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
 import styled from 'styled-components';
 
 const StyledContainer = styled(Container)`
-  margin-top: 30px;
+  margin-top: 10% !important;
   text-align: center;
 `;
 
@@ -19,43 +20,71 @@ const AdminLogin: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
-    if (username === 'admin' && password === 'password123') {
-      localStorage.setItem('isAdminAuthenticated', 'true');
-      const redirectTo = location.state?.redirectTo || '/admin';
-      navigate(redirectTo);
-    } else {
-      setError('Usuario o contraseña incorrectos');
+    try {
+      console.log(username);
+      const response = await fetch(
+        'https://travel-agency-api-staging.up.railway.app/api/v1/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+
+          body: JSON.stringify({
+            email: username.trim(),
+            password: password.trim(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.error('Error de la API:', errorResponse);
+
+        throw new Error(errorResponse.message || 'Error en la autenticación');
+      }
+
+      const data = await response.json();
+      const { token, user } = data;
+
+      login(token);
+      navigate('/admin');
+    } catch (err: any) {
+      console.error('Error al iniciar sesión:', err.message);
+      setError(err.message || 'Usuario o contraseña incorrectos');
     }
   };
 
   return (
     <StyledContainer>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant='h4' gutterBottom>
         Inicio de Sesión - Admin
       </Typography>
       <StyledForm onSubmit={handleLogin}>
         <Stack spacing={2}>
           <TextField
-            label="Usuario"
-            variant="outlined"
+            label='Correo Electrónico'
+            variant='outlined'
             fullWidth
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <TextField
-            label="Contraseña"
-            type="password"
-            variant="outlined"
+            label='Contraseña'
+            type='password'
+            variant='outlined'
             fullWidth
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <Typography color="error">{error}</Typography>}
-          <Button type="submit" variant="contained" color="primary" fullWidth>
+          {error && <Typography color='error'>{error}</Typography>}
+          <Button type='submit' variant='contained' color='primary' fullWidth>
             Iniciar Sesión
           </Button>
         </Stack>

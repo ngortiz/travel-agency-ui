@@ -9,11 +9,11 @@ const DashboardContainer = styled.div`
   background: #f4f6f9;
 `;
 
-const Sidebar = styled.nav<{ isOpen: boolean }>`
+const Sidebar = styled.nav<{ $isOpen: boolean }>`
   background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
   padding: 2rem;
   color: #127ca8;
-  display: ${({ isOpen }) => (isOpen ? 'flex' : 'none')};
+  display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
   flex-direction: column;
   align-items: flex-start;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -119,17 +119,17 @@ const AdminDashboard: React.FC = () => {
         {isSidebarOpen ? <FiX /> : <FiMenu />}
       </ToggleButton>
 
-      <Sidebar isOpen={isSidebarOpen}>
+      <Sidebar $isOpen={isSidebarOpen}>
         <h3>GLOBE TRAVEL</h3>
         <MenuList>
           <MenuItem>
-            <StyledLink to="/admin/create-package">
+            <StyledLink to='/admin/create-package'>
               <FiPackage size={20} />
               Crear Paquete
             </StyledLink>
           </MenuItem>
           <MenuItem>
-            <StyledLink to="/admin/upload-banner">
+            <StyledLink to='/admin/upload-banner'>
               <FiImage size={20} />
               Banner
             </StyledLink>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import logo from '../assets/logo.png';
 import {
   AppBar,
@@ -10,17 +10,14 @@ import {
 } from '@mui/material';
 import styled from 'styled-components';
 import { Email, WhatsApp } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const COLORS = {
   primary: '#127ca8',
   text: '#ffffff',
   hover: '#00a65a',
 };
-
-const StyledBox = styled.div`
-  flex-grow: 1;
-`;
 
 const StyledAppBar = styled(AppBar)`
   background-color: #ffffff !important;
@@ -55,13 +52,9 @@ const StyledTypography = styled(Typography)`
   }
 `;
 
-const StyledIconButton = styled(IconButton)`
-  color: ${COLORS.text};
-`;
-
 const AdminButton = styled.button`
-  background-color: #127ca8 !important;
-  color: #ffffff;
+  background-color: ${COLORS.primary} !important;
+  color: ${COLORS.text};
   padding: 0.5rem 1rem;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   border: 1px solid #f4f6f9;
@@ -73,12 +66,8 @@ const AdminButton = styled.button`
 
   &:hover {
     background-color: #ffffff !important;
-    color: #127ca8;
-    border: 2px solid #127ca8;
-  }
-
-  &:active {
-    background-color: #0b5d3c;
+    color: ${COLORS.primary};
+    border: 2px solid ${COLORS.primary};
   }
 
   @media (max-width: 600px) {
@@ -87,30 +76,17 @@ const AdminButton = styled.button`
   }
 `;
 
-const StyledStack = styled(Stack)`
-  @media (max-width: 300px) {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 20px; /* Espaciado entre los elementos */
-  }
-`;
-
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Verifica si el usuario está autenticado al cargar el componente
-  useEffect(() => {
-    const authStatus = localStorage.getItem('isAdminAuthenticated') === 'true';
-    setIsAuthenticated(authStatus);
-  }, []);
+  const { isAuthenticated, logout } = useAuth();
 
-  const handleAdminClick = () => {
+  const handleButtonClick = () => {
     if (isAuthenticated) {
-      navigate('/admin');
+      logout();
+      navigate('/');
     } else {
-      navigate('/admin-login', { state: { redirectTo: '/admin' } });
+      navigate('/admin-login');
     }
   };
 
@@ -123,44 +99,40 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <>
-      <StyledBox>
-        <StyledAppBar position="fixed">
-          <Toolbar>
-            <Container maxWidth="xl">
-              <StyledStack
-                direction="row"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <StyledLogo src={logo} alt="Agency Logo" />
+    <StyledAppBar position='fixed'>
+      <Toolbar>
+        <Container maxWidth='xl'>
+          <Stack
+            direction='row'
+            justifyContent='space-between'
+            alignItems='center'
+          >
+            <StyledLogo src={logo} alt='Agency Logo' />
 
-                <StyledStack direction="row" spacing={4}>
-                  <StyledTypography variant="h6" onClick={handleWhatsAppClick}>
-                    <StyledIconButton aria-label="WhatsApp">
-                      <WhatsApp />
-                    </StyledIconButton>
-                    Contacto
-                  </StyledTypography>
+            <Stack direction='row' spacing={4}>
+              <StyledTypography variant='h6' onClick={handleWhatsAppClick}>
+                <IconButton aria-label='WhatsApp'>
+                  <WhatsApp />
+                </IconButton>
+                Contacto
+              </StyledTypography>
 
-                  <StyledTypography variant="h6" onClick={handleEmailClick}>
-                    <StyledIconButton aria-label="Email">
-                      <Email />
-                    </StyledIconButton>
-                    Email
-                  </StyledTypography>
+              <StyledTypography variant='h6' onClick={handleEmailClick}>
+                <IconButton aria-label='Email'>
+                  <Email />
+                </IconButton>
+                Email
+              </StyledTypography>
 
-                  {/* Botón de Administración */}
-                  <AdminButton onClick={handleAdminClick}>
-                    {isAuthenticated ? 'Inicio' : 'Login Admin'}
-                  </AdminButton>
-                </StyledStack>
-              </StyledStack>
-            </Container>
-          </Toolbar>
-        </StyledAppBar>
-      </StyledBox>
-    </>
+              {/* Botón de administración */}
+              <AdminButton onClick={handleButtonClick}>
+                {isAuthenticated ? 'Cerrar Sesión' : 'Iniciar Sesión'}
+              </AdminButton>
+            </Stack>
+          </Stack>
+        </Container>
+      </Toolbar>
+    </StyledAppBar>
   );
 };
 
