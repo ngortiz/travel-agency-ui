@@ -112,12 +112,12 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
   handleClose,
   packageDetails,
 }) => (
-  <StyledDialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+  <StyledDialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
     {packageDetails && (
       <>
         <StyledDialogTitle>
           DETALLE DEL PAQUETE
-          <IconButton onClick={handleClose} aria-label="close">
+          <IconButton onClick={handleClose} aria-label='close'>
             <CloseIcon />
           </IconButton>
         </StyledDialogTitle>
@@ -125,7 +125,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
           <CardContainer>
             <StyledImage
               src={packageDetails.image_url}
-              alt="Paquete de viaje"
+              alt='Paquete de viaje'
             />
             <InfoContainer>
               <DetailRow>
@@ -138,7 +138,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({
               </DetailRow>
               <DetailRow>
                 <StyledLabel>Precio:</StyledLabel>
-                <StyledSpan>{packageDetails.sell_price}</StyledSpan>
+                <StyledSpan>US$ {packageDetails.sell_price}</StyledSpan>
               </DetailRow>
               <DetailRow>
                 <StyledLabel>País:</StyledLabel>

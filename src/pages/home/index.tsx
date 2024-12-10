@@ -18,7 +18,6 @@ import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
 
-// Styled Components
 const StyledCarouselItem = styled(Box)`
   background-size: cover;
   background-position: center;
@@ -121,7 +120,9 @@ const Home: React.FC = () => {
     const phoneNumber = '123456789';
     const message =
       '¡Hola! Estoy interesado en más información sobre los paquetes de viaje.';
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message
+    )}`;
     window.open(url, '_blank');
   };
 
@@ -154,7 +155,7 @@ const Home: React.FC = () => {
       <Carousel
         indicators
         navButtonsAlwaysVisible
-        animation="slide"
+        animation='slide'
         indicatorIconButtonProps={{
           style: { color: '#127ca8' },
         }}
@@ -173,12 +174,12 @@ const Home: React.FC = () => {
             <StyledOverlay>
               <Box sx={{ maxWidth: '70%' }}>
                 <Typography
-                  variant="h2"
+                  variant='h2'
                   sx={{ fontWeight: 'bold', color: '#fff' }}
                 >
                   {item.title}
                 </Typography>
-                <Typography variant="h5" sx={{ color: '#fff', opacity: 0.85 }}>
+                <Typography variant='h5' sx={{ color: '#fff', opacity: 0.85 }}>
                   {item.description}
                 </Typography>
               </Box>
@@ -190,11 +191,11 @@ const Home: React.FC = () => {
       {/* Search Field */}
       <Container sx={{ display: 'flex', justifyContent: 'center' }}>
         <StyledSearchField
-          variant="outlined"
-          placeholder="Buscar experiencias, destinos..."
+          variant='outlined'
+          placeholder='Buscar experiencias, destinos...'
           InputProps={{
             startAdornment: (
-              <InputAdornment position="start">
+              <InputAdornment position='start'>
                 <SearchIcon sx={{ color: '#127ca8' }} />
               </InputAdornment>
             ),
@@ -207,7 +208,7 @@ const Home: React.FC = () => {
         {loading ? (
           <Typography>Cargando paquetes...</Typography>
         ) : error ? (
-          <Typography color="error">Error: {error}</Typography>
+          <Typography color='error'>Error: {error}</Typography>
         ) : (
           <Grid container spacing={3}>
             {packages.map((pkg) => (

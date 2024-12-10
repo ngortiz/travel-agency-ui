@@ -18,10 +18,6 @@ const FormTitle = styled.h2`
   margin-bottom: 2rem;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
-
-  padding-bottom: 0.5rem;
-  width: 100%;
-  max-width: 700px;
 `;
 
 const Form = styled.form`
@@ -104,8 +100,56 @@ const SubmitButton = styled.button`
   }
 `;
 
+const Notification = styled.div<{ show: boolean; type: 'success' | 'error' }>`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px;
+  color: ${(props) => (props.type === 'success' ? '#3c763d' : '#a94442')};
+  background-color: ${(props) =>
+    props.type === 'success' ? '#dff0d8' : '#f2dede'};
+  border: 1px solid transparent;
+  border-color: ${(props) =>
+    props.type === 'success' ? '#d6e9c6' : '#ebccd1'};
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  opacity: ${(props) => (props.show ? 1 : 0)};
+  transform: translateY(${(props) => (props.show ? '0' : '-20px')});
+  transition: opacity 0.5s ease, transform 0.5s ease;
+`;
+
 const CreatePackage: React.FC = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    cost_price: '',
+    sell_price: '',
+    city: '',
+    country: '',
+    start_date: '',
+    end_date: '',
+    included_services: '',
+    non_included_services: '',
+  });
+
   const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    show: false,
+    message: '',
+    type: 'success',
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -113,10 +157,118 @@ const CreatePackage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('Datos del paquete enviados:', image);
+    if (!image) {
+      setNotification({
+        show: true,
+        message: 'Por favor, selecciona una imagen.',
+        type: 'error',
+      });
+      setTimeout(
+        () => setNotification({ show: false, message: '', type: 'success' }),
+        3000
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const token = sessionStorage.getItem('authToken');
+      if (!token) {
+        setNotification({
+          show: true,
+          message: 'Token no encontrado. Por favor inicia sesión nuevamente.',
+          type: 'error',
+        });
+        setTimeout(
+          () => setNotification({ show: false, message: '', type: 'success' }),
+          3000
+        );
+        return;
+      }
+
+      const imageBase64 = await convertImageToBase64(image);
+
+      const payload = {
+        package: {
+          ...formData,
+          cost_price: parseFloat(formData.cost_price),
+          sell_price: parseFloat(formData.sell_price),
+          included_services: formData.included_services
+            .split(',')
+            .map((s) => s.trim()),
+          non_included_services: formData.non_included_services
+            .split(',')
+            .map((s) => s.trim()),
+          image: {
+            data: imageBase64,
+            format: image.type.split('/')[1].toUpperCase(),
+          },
+        },
+      };
+
+      const response = await fetch(
+        'https://travel-agency-api-staging.up.railway.app/api/v1/packages',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errorDetails = await response.json().catch(() => null);
+        setNotification({
+          show: true,
+          message: `Error: ${errorDetails?.message || response.statusText}`,
+          type: 'error',
+        });
+        setTimeout(
+          () => setNotification({ show: false, message: '', type: 'success' }),
+          3000
+        );
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Respuesta de la API:', data);
+      setNotification({
+        show: true,
+        message: 'Paquete creado exitosamente.',
+        type: 'success',
+      });
+    } catch (error) {
+      console.error('Error capturado:', error);
+      setNotification({
+        show: true,
+        message: 'Error al crear el paquete.',
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+      setTimeout(
+        () => setNotification({ show: false, message: '', type: 'success' }),
+        3000
+      );
+    }
+  };
+
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   return (
@@ -125,56 +277,97 @@ const CreatePackage: React.FC = () => {
       <Form onSubmit={handleSubmit}>
         <FormGroup>
           <Label>Nombre del Paquete:</Label>
-          <Input type="text" placeholder="Ingrese el nombre del paquete" />
+          <Input
+            type='text'
+            name='name'
+            placeholder='Ingrese el nombre del paquete'
+            onChange={handleChange}
+          />
         </FormGroup>
 
         <FormGroup>
           <Label>Descripción:</Label>
-          <TextArea placeholder="Ingrese una descripción"></TextArea>
+          <TextArea
+            name='description'
+            placeholder='Ingrese una descripción'
+            onChange={handleChange}
+          ></TextArea>
         </FormGroup>
 
         <FormGroup>
-          <Label>Precio:</Label>
-          <Input type="number" placeholder="Ingrese el precio" />
+          <Label>Precio de Costo:</Label>
+          <Input
+            type='number'
+            name='cost_price'
+            placeholder='Ingrese el precio de costo'
+            onChange={handleChange}
+          />
         </FormGroup>
 
         <FormGroup>
-          <Label>País:</Label>
-          <Input type="text" placeholder="Ingrese el país" />
+          <Label>Precio de Venta:</Label>
+          <Input
+            type='number'
+            name='sell_price'
+            placeholder='Ingrese el precio de venta'
+            onChange={handleChange}
+          />
         </FormGroup>
 
         <FormGroup>
           <Label>Ciudad:</Label>
-          <Input type="text" placeholder="Ingrese la ciudad" />
+          <Input
+            type='text'
+            name='city'
+            placeholder='Ingrese la ciudad'
+            onChange={handleChange}
+          />
         </FormGroup>
 
         <FormGroup>
-          <Label>Fechas:</Label>
-          <Input type="date" />
+          <Label>País:</Label>
+          <Input
+            type='text'
+            name='country'
+            placeholder='Ingrese el país'
+            onChange={handleChange}
+          />
         </FormGroup>
 
         <FormGroup>
-          <Label>Duración:</Label>
-          <Input type="text" placeholder="Ingrese la duración" />
+          <Label>Fecha de Inicio:</Label>
+          <Input type='date' name='start_date' onChange={handleChange} />
         </FormGroup>
 
         <FormGroup>
-          <Label>Incluye:</Label>
-          <TextArea placeholder="Ingrese los servicios incluidos"></TextArea>
+          <Label>Fecha de Fin:</Label>
+          <Input type='date' name='end_date' onChange={handleChange} />
         </FormGroup>
 
         <FormGroup>
-          <Label>No Incluye:</Label>
-          <TextArea placeholder="Ingrese los servicios no incluidos"></TextArea>
+          <Label>Servicios Incluidos:</Label>
+          <TextArea
+            name='included_services'
+            placeholder='Ingrese los servicios'
+            onChange={handleChange}
+          ></TextArea>
         </FormGroup>
 
         <FormGroup>
           <Label>Imagen del Paquete:</Label>
-          <Input type="file" accept="image/*" onChange={handleImageChange} />
+          <Input type='file' accept='image/*' onChange={handleImageChange} />
         </FormGroup>
 
-        <SubmitButton type="submit">Guardar Paquete</SubmitButton>
+        <SubmitButton type='submit' disabled={loading}>
+          {loading ? 'Guardando...' : 'Guardar Paquete'}
+        </SubmitButton>
       </Form>
+
+      {notification.show && (
+        <Notification show={notification.show} type={notification.type}>
+          {notification.message}
+        </Notification>
+      )}
     </Container>
   );
 };
