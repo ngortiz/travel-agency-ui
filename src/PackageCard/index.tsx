@@ -1,4 +1,5 @@
-import React from 'react';
+// Importar styled-components y Material-UI
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   Card as MuiCard,
@@ -6,11 +7,16 @@ import {
   CardMedia,
   Typography,
   Button,
+  IconButton,
+  Menu,
+  MenuItem,
 } from '@mui/material';
-import { PackageDetails } from '../components/PackageDetailsModal';
-import { WhatsApp } from '@mui/icons-material';
+import { MoreVert, WhatsApp } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
+// Estilización del Card principal
 const Card = styled(MuiCard)`
+  position: relative; /* Necesario para posicionar el botón */
   margin: 16px;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -82,12 +88,86 @@ const PriceAndButtonsContainer = styled.div`
   margin-top: 16px;
 `;
 
-const PackageCard: React.FC<
-  PackageDetails & { onClick: () => void; onWhatsApp: () => void }
-> = ({ image_url, name, description, sell_price, onClick, onWhatsApp }) => {
+const MenuButton = styled(IconButton)`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+
+  &:hover {
+    background-color: rgba(200, 200, 200, 0.8);
+  }
+`;
+
+const StyledMenu = styled(Menu)`
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 2px solid #127ca8;
+`;
+
+interface PackageCardProps {
+  id: number;
+  image_url: string;
+  name: string;
+  description: string;
+  sell_price: number;
+  onClick: () => void;
+  onWhatsApp: () => void;
+  onDelete: (id: number) => void;
+}
+
+const PackageCard: React.FC<PackageCardProps> = ({
+  id,
+  image_url,
+  name,
+  description,
+  sell_price,
+  onClick,
+  onWhatsApp,
+  onDelete,
+}) => {
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('authToken')) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    handleMenuClose();
+    navigate('/create-package', {
+      state: { id, image_url, name, description, sell_price },
+    });
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onDelete(id);
+  };
+
   return (
     <Card onClick={onClick}>
-      <StyledCardMedia image={image_url} />
+      <StyledCardMedia
+        image={image_url || 'https://via.placeholder.com/200'}
+        title={name}
+      />
+
       <CardContent>
         <Typography variant='h5' fontWeight='bold'>
           {name}
@@ -122,6 +202,36 @@ const PackageCard: React.FC<
           </ButtonContainer>
         </PriceAndButtonsContainer>
       </CardContent>
+
+      {isAuthenticated && (
+        <>
+          <MenuButton
+            onClick={handleMenuOpen}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              zIndex: 2,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+              '&:hover': {
+                backgroundColor: 'rgba(200, 200, 200, 0.8)',
+              },
+            }}
+          >
+            <MoreVert />
+          </MenuButton>
+          <StyledMenu
+            anchorEl={menuAnchorEl}
+            open={Boolean(menuAnchorEl)}
+            onClose={handleMenuClose}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MenuItem onClick={handleEdit}>Editar</MenuItem>
+            <MenuItem onClick={handleDelete}>Eliminar</MenuItem>
+          </StyledMenu>
+        </>
+      )}
     </Card>
   );
 };

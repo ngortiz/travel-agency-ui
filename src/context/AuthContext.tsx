@@ -14,12 +14,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const login = (token: string) => {
-    sessionStorage.setItem('authToken', token);
+    localStorage.setItem('authToken', token);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    sessionStorage.removeItem('authToken');
+    localStorage.removeItem('authToken');
     setIsAuthenticated(false);
   };
 

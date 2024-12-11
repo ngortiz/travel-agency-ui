@@ -8,7 +8,7 @@ export interface PackageDetails {
   name: string;
   image_url: string;
   description: string;
-  sell_price: string;
+  sell_price: number | string;
   country: string;
   city: string;
   start_date: string;

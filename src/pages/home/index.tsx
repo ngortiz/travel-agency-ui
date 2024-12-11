@@ -130,6 +130,27 @@ const Home: React.FC = () => {
     setOpen(false);
     setSelectedPackage(null);
   };
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este paquete?')) {
+      return;
+    }
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/packages/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      setPackages((prevPackages) =>
+        prevPackages.filter((pkg) => pkg.id !== id)
+      );
+      alert('Paquete eliminado con éxito');
+    } catch (error) {
+      console.error('Error eliminando el paquete:', error);
+      alert('Hubo un error al intentar eliminar el paquete');
+    }
+  };
 
   const carouselItems = [
     {
@@ -188,7 +209,6 @@ const Home: React.FC = () => {
         ))}
       </Carousel>
 
-      {/* Search Field */}
       <Container sx={{ display: 'flex', justifyContent: 'center' }}>
         <StyledSearchField
           variant='outlined'
@@ -203,7 +223,6 @@ const Home: React.FC = () => {
         />
       </Container>
 
-      {/* Package Cards */}
       <Container sx={{ marginTop: '40px', paddingBottom: '40px' }}>
         {loading ? (
           <Typography>Cargando paquetes...</Typography>
@@ -215,9 +234,14 @@ const Home: React.FC = () => {
               <Grid item xs={12} sm={6} md={4} key={pkg.id}>
                 <StyledPackageCard>
                   <PackageCard
-                    {...pkg}
+                    id={pkg.id}
+                    image_url={pkg.image_url}
+                    name={pkg.name}
+                    description={pkg.description}
+                    sell_price={Number(pkg.sell_price) || 0}
                     onClick={() => handleViewMore(pkg)}
                     onWhatsApp={handleWhatsApp}
+                    onDelete={handleDelete}
                   />
                 </StyledPackageCard>
               </Grid>
