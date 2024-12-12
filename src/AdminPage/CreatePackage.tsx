@@ -212,7 +212,7 @@ const CreatePackage: React.FC = () => {
       };
 
       const response = await fetch(
-        'https://travel-agency-api-staging.up.railway.app/api/v1/packages',
+        `${import.meta.env.VITE_API_URL}/packages`,
         {
           method: 'POST',
           headers: {

@@ -11,7 +11,6 @@ import AdminDashboard from './AdminPage/AdminDashboard';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
       <BrowserRouter
         future={{
           v7_startTransition: true,
@@ -31,7 +30,6 @@ const App: React.FC = () => {
           </Route>
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
   );
 };
 
