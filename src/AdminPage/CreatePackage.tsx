@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -120,6 +120,7 @@ const Notification = styled.div<{ show: boolean; type: 'success' | 'error' }>`
 `;
 
 const CreatePackage: React.FC = () => {
+  const formRef = useRef<HTMLFormElement>(null); // Ref para el formulario
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -176,7 +177,7 @@ const CreatePackage: React.FC = () => {
     try {
       setLoading(true);
 
-      const token = sessionStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken');
       if (!token) {
         setNotification({
           show: true,
@@ -236,13 +237,27 @@ const CreatePackage: React.FC = () => {
         return;
       }
 
-      const data = await response.json();
-      console.log('Respuesta de la API:', data);
       setNotification({
         show: true,
         message: 'Paquete creado exitosamente.',
         type: 'success',
       });
+
+      // Limpia el formulario usando el ref
+      formRef.current?.reset();
+      setFormData({
+        name: '',
+        description: '',
+        cost_price: '',
+        sell_price: '',
+        city: '',
+        country: '',
+        start_date: '',
+        end_date: '',
+        included_services: '',
+        non_included_services: '',
+      });
+      setImage(null);
     } catch (error) {
       console.error('Error capturado:', error);
       setNotification({
@@ -274,7 +289,7 @@ const CreatePackage: React.FC = () => {
   return (
     <Container>
       <FormTitle>Crear Nuevo Paquete de Viaje</FormTitle>
-      <Form onSubmit={handleSubmit}>
+      <Form ref={formRef} onSubmit={handleSubmit}>
         <FormGroup>
           <Label>Nombre del Paquete:</Label>
           <Input
