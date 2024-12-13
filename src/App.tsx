@@ -11,27 +11,26 @@ import AdminDashboard from './AdminPage/AdminDashboard';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <NavBar />
-        <Routes>
-          {/* Rutas públicas */}
-          <Route path='/' element={<Home />} />
-          <Route path='/admin-login' element={<AdminLogin />} />
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
+      <NavBar />
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path='/' element={<Home />} />
+        <Route path='/admin-login' element={<AdminLogin />} />
 
-          {/* Rutas protegidas con layout persistente */}
-          <Route path='/admin' element={<AdminDashboard />}>
-            <Route path='create-package' element={<CreatePackage />} />
-            <Route path='upload-banner' element={<UploadBanner />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        {/* Rutas protegidas con layout persistente */}
+        <Route path='/admin' element={<AdminDashboard />}>
+          <Route path='create-package' element={<CreatePackage />} />
+          <Route path='create-package/:id' element={<CreatePackage />} />
+          <Route path='upload-banner' element={<UploadBanner />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
