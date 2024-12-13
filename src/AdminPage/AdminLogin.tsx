@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Container, TextField, Button, Typography, Stack } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import styled from 'styled-components';
@@ -16,7 +16,6 @@ const StyledForm = styled.form`
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,20 +27,17 @@ const AdminLogin: React.FC = () => {
 
     try {
       console.log(username);
-      const response = await fetch(
-        'https://travel-agency-api-staging.up.railway.app/api/v1/login',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
 
-          body: JSON.stringify({
-            email: username.trim(),
-            password: password.trim(),
-          }),
-        }
-      );
+        body: JSON.stringify({
+          email: username.trim(),
+          password: password.trim(),
+        }),
+      });
 
       if (!response.ok) {
         const errorResponse = await response.json();

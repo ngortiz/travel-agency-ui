@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { MoreVert, WhatsApp } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Estilización del Card principal
 const Card = styled(MuiCard)`
@@ -131,13 +132,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
 }) => {
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem('authToken')) {
-      setIsAuthenticated(true);
-    }
-  }, []);
+  const { isAuthenticated } = useAuth();
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -150,9 +145,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
 
   const handleEdit = () => {
     handleMenuClose();
-    navigate('/create-package', {
-      state: { id, image_url, name, description, sell_price },
-    });
+    navigate(`/admin/create-package/${id}`);
   };
 
   const handleDelete = (e: React.MouseEvent) => {

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -132,6 +133,7 @@ const CreatePackage: React.FC = () => {
     end_date: '',
     included_services: '',
     non_included_services: '',
+    image_url: '',
   });
 
   const [image, setImage] = useState<File | null>(null);
@@ -145,6 +147,51 @@ const CreatePackage: React.FC = () => {
     message: '',
     type: 'success',
   });
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (id) {
+      // fetch a la api con el id
+      fetchPackage(id);
+      setIsEditMode(true);
+    }
+  }, []);
+
+  const fetchPackage = async (id: string) => {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/packages/${id}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+    setFormData({
+      name: data.name,
+      description: data.description,
+      cost_price: data.cost_price,
+      sell_price: data.sell_price,
+      city: data.city,
+      country: data.country,
+      start_date: data.start_date,
+      end_date: data.end_date,
+      included_services: data.included_services.join(','),
+      non_included_services: data.non_included_services.join(','),
+      image_url: data.image_url,
+    });
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -161,10 +208,10 @@ const CreatePackage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!image) {
+    if (!image && !formData.image_url) {
       setNotification({
         show: true,
-        message: 'Por favor, selecciona una imagen.',
+        message: 'Por favor, selecciona o conserva una imagen.',
         type: 'error',
       });
       setTimeout(
@@ -191,7 +238,7 @@ const CreatePackage: React.FC = () => {
         return;
       }
 
-      const imageBase64 = await convertImageToBase64(image);
+      const imageBase64 = image ? await convertImageToBase64(image) : null;
 
       const payload = {
         package: {
@@ -204,24 +251,28 @@ const CreatePackage: React.FC = () => {
           non_included_services: formData.non_included_services
             .split(',')
             .map((s) => s.trim()),
-          image: {
-            data: imageBase64,
-            format: image.type.split('/')[1].toUpperCase(),
-          },
+          image: imageBase64
+            ? {
+                data: imageBase64,
+                format: image ? image.type.split('/')[1].toUpperCase() : '',
+              }
+            : formData.image_url // Si no hay imagen nueva, usa la URL existente
+            ? { url: formData.image_url }
+            : null,
         },
       };
 
-      const response = await fetch(
-        'https://travel-agency-api-staging.up.railway.app/api/v1/packages',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const url = isEditMode
+        ? `${import.meta.env.VITE_API_URL}/packages/${id}`
+        : `${import.meta.env.VITE_API_URL}/packages`;
+      const response = await fetch(url, {
+        method: isEditMode ? 'PUT' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const errorDetails = await response.json().catch(() => null);
@@ -239,7 +290,9 @@ const CreatePackage: React.FC = () => {
 
       setNotification({
         show: true,
-        message: 'Paquete creado exitosamente.',
+        message: id
+          ? 'Paquete actualizado exitosamente.'
+          : 'Paquete creado exitosamente.',
         type: 'success',
       });
 
@@ -256,6 +309,7 @@ const CreatePackage: React.FC = () => {
         end_date: '',
         included_services: '',
         non_included_services: '',
+        image_url: '',
       });
       setImage(null);
     } catch (error) {
@@ -297,18 +351,18 @@ const CreatePackage: React.FC = () => {
             name='name'
             placeholder='Ingrese el nombre del paquete'
             onChange={handleChange}
+            value={formData.name}
           />
         </FormGroup>
-
         <FormGroup>
           <Label>Descripción:</Label>
           <TextArea
             name='description'
             placeholder='Ingrese una descripción'
             onChange={handleChange}
+            value={formData.description}
           ></TextArea>
         </FormGroup>
-
         <FormGroup>
           <Label>Precio de Costo:</Label>
           <Input
@@ -316,9 +370,9 @@ const CreatePackage: React.FC = () => {
             name='cost_price'
             placeholder='Ingrese el precio de costo'
             onChange={handleChange}
+            value={formData.sell_price}
           />
         </FormGroup>
-
         <FormGroup>
           <Label>Precio de Venta:</Label>
           <Input
@@ -326,9 +380,9 @@ const CreatePackage: React.FC = () => {
             name='sell_price'
             placeholder='Ingrese el precio de venta'
             onChange={handleChange}
+            value={formData.sell_price}
           />
         </FormGroup>
-
         <FormGroup>
           <Label>Ciudad:</Label>
           <Input
@@ -336,9 +390,9 @@ const CreatePackage: React.FC = () => {
             name='city'
             placeholder='Ingrese la ciudad'
             onChange={handleChange}
+            value={formData.city}
           />
         </FormGroup>
-
         <FormGroup>
           <Label>País:</Label>
           <Input
@@ -346,36 +400,70 @@ const CreatePackage: React.FC = () => {
             name='country'
             placeholder='Ingrese el país'
             onChange={handleChange}
+            value={formData.country}
           />
         </FormGroup>
-
         <FormGroup>
           <Label>Fecha de Inicio:</Label>
-          <Input type='date' name='start_date' onChange={handleChange} />
+          <Input
+            type='date'
+            name='start_date'
+            onChange={handleChange}
+            value={formData.start_date}
+          />
         </FormGroup>
-
         <FormGroup>
           <Label>Fecha de Fin:</Label>
-          <Input type='date' name='end_date' onChange={handleChange} />
+          <Input
+            type='date'
+            name='end_date'
+            onChange={handleChange}
+            value={formData.end_date}
+          />
         </FormGroup>
-
         <FormGroup>
           <Label>Servicios Incluidos:</Label>
           <TextArea
             name='included_services'
             placeholder='Ingrese los servicios'
             onChange={handleChange}
+            value={formData.included_services}
           ></TextArea>
         </FormGroup>
-
         <FormGroup>
           <Label>Imagen del Paquete:</Label>
-          <Input type='file' accept='image/*' onChange={handleImageChange} />
+          {formData.image_url && !image && (
+            <div>
+              <img
+                src={formData.image_url}
+                alt='Imagen del paquete'
+                style={{ maxWidth: '100%', marginBottom: '1rem' }}
+              />
+              <p>
+                Imagen actual. Puedes cargar una nueva si deseas reemplazarla.
+              </p>
+            </div>
+          )}
+          <Input
+            type='file'
+            accept='image/*'
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                setImage(e.target.files[0]); // Actualiza el estado solo si hay archivo
+              }
+            }}
+          />
         </FormGroup>
 
-        <SubmitButton type='submit' disabled={loading}>
-          {loading ? 'Guardando...' : 'Guardar Paquete'}
-        </SubmitButton>
+        {isEditMode ? (
+          <SubmitButton type='submit' disabled={loading}>
+            {loading ? 'Actualizando...' : 'Actualizar Paquete'}
+          </SubmitButton>
+        ) : (
+          <SubmitButton type='submit' disabled={loading}>
+            {loading ? 'Guardando...' : 'Guardar Paquete'}
+          </SubmitButton>
+        )}
       </Form>
 
       {notification.show && (

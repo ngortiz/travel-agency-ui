@@ -2,8 +2,8 @@ import React, {
   ReactNode,
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
 } from 'react';
 
 interface AuthContextType {
@@ -28,6 +28,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
   };
+
   useEffect(() => {
     if (localStorage.getItem('authToken')) {
       setIsAuthenticated(true);
