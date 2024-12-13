@@ -17,17 +17,15 @@ import { useAuth } from '../context/AuthContext';
 
 // Estilización del Card principal
 const Card = styled(MuiCard)`
-  position: relative; /* Necesario para posicionar el botón */
+  position: relative;
   margin: 16px;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s, box-shadow 0.3s;
   border-radius: 12px;
 
   &:hover {
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
     transform: scale(1.02);
-    border: 2px solid #127ca8;
   }
 `;
 
