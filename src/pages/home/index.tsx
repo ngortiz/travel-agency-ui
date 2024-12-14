@@ -7,6 +7,7 @@ import {
   TextField,
   Typography,
   InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
@@ -17,6 +18,7 @@ import image3 from '../../assets/image3.jpg';
 import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
+import { red } from '@mui/material/colors';
 
 const StyledCarouselItem = styled(Box)`
   background-size: cover;
@@ -89,8 +91,12 @@ const Home: React.FC = () => {
     null
   );
   const [packages, setPackages] = useState<PackageDetails[]>([]);
+  const [filteredPackages, setFilteredPackages] = useState<PackageDetails[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchPackages = async () => {
     try {
@@ -100,6 +106,7 @@ const Home: React.FC = () => {
       }
       const data = await response.json();
       setPackages(data);
+      setFilteredPackages(data);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
     } finally {
@@ -110,6 +117,13 @@ const Home: React.FC = () => {
   useEffect(() => {
     fetchPackages();
   }, []);
+
+  useEffect(() => {
+    const filtered = packages.filter((pkg) =>
+      pkg.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredPackages(filtered);
+  }, [searchQuery, packages]);
 
   const handleViewMore = React.useCallback((packageDetails: PackageDetails) => {
     setSelectedPackage(packageDetails);
@@ -130,6 +144,7 @@ const Home: React.FC = () => {
     setOpen(false);
     setSelectedPackage(null);
   };
+
   const handleDelete = async (id: number) => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este paquete?')) {
       return;
@@ -213,6 +228,8 @@ const Home: React.FC = () => {
         <StyledSearchField
           variant='outlined'
           placeholder='Buscar experiencias, destinos...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
@@ -225,12 +242,14 @@ const Home: React.FC = () => {
 
       <Container sx={{ marginTop: '40px', paddingBottom: '40px' }}>
         {loading ? (
-          <Typography>Cargando paquetes...</Typography>
+          <Box display='flex' justifyContent='center' alignItems='center'>
+            <CircularProgress />
+          </Box>
         ) : error ? (
           <Typography color='error'>Error: {error}</Typography>
         ) : (
           <Grid container spacing={3}>
-            {packages.map((pkg) => (
+            {filteredPackages.map((pkg) => (
               <Grid item xs={12} sm={6} md={4} key={pkg.id}>
                 <StyledPackageCard>
                   <PackageCard
