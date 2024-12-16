@@ -36,6 +36,14 @@ const FormGroup = styled.div`
   margin-bottom: 1.5rem;
 `;
 
+const ImagePreview = styled.img`
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+`;
+
 const Label = styled.label`
   font-size: 1.1rem;
   color: #37474f;
@@ -137,6 +145,7 @@ const CreatePackage: React.FC = () => {
   });
 
   const [image, setImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // muestra la vista previa
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -158,6 +167,17 @@ const CreatePackage: React.FC = () => {
       setIsEditMode(true);
     }
   }, []);
+
+  useEffect(() => {
+    // Generar la URL de vista previa al seleccionar una nueva imagen
+    if (image) {
+      const objectUrl = URL.createObjectURL(image);
+      setPreviewUrl(objectUrl);
+
+      return () => URL.revokeObjectURL(objectUrl); // Limpiar la URL creada
+    }
+    setPreviewUrl(null);
+  }, [image]);
 
   const fetchPackage = async (id: string) => {
     const token = localStorage.getItem('authToken');
@@ -342,7 +362,9 @@ const CreatePackage: React.FC = () => {
 
   return (
     <Container>
-      <FormTitle>Crear Nuevo Paquete de Viaje</FormTitle>
+      <FormTitle>
+        {isEditMode ? 'Editar Paquete' : 'Crear Nuevo Paquete'}
+      </FormTitle>
       <Form ref={formRef} onSubmit={handleSubmit}>
         <FormGroup>
           <Label>Nombre del Paquete:</Label>
@@ -370,7 +392,7 @@ const CreatePackage: React.FC = () => {
             name='cost_price'
             placeholder='Ingrese el precio de costo'
             onChange={handleChange}
-            value={formData.sell_price}
+            value={formData.cost_price}
           />
         </FormGroup>
         <FormGroup>
@@ -432,27 +454,15 @@ const CreatePackage: React.FC = () => {
         </FormGroup>
         <FormGroup>
           <Label>Imagen del Paquete:</Label>
-          {formData.image_url && !image && (
-            <div>
-              <img
-                src={formData.image_url}
-                alt='Imagen del paquete'
-                style={{ maxWidth: '100%', marginBottom: '1rem' }}
-              />
-              <p>
-                Imagen actual. Puedes cargar una nueva si deseas reemplazarla.
-              </p>
-            </div>
+          {previewUrl && <ImagePreview src={previewUrl} alt='Vista previa' />}
+          {!previewUrl && formData.image_url && (
+            <ImagePreview
+              src={formData.image_url}
+              alt='Imagen existente'
+              title='Imagen actual'
+            />
           )}
-          <Input
-            type='file'
-            accept='image/*'
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setImage(e.target.files[0]); // Actualiza el estado solo si hay archivo
-              }
-            }}
-          />
+          <Input type='file' accept='image/*' onChange={handleImageChange} />
         </FormGroup>
 
         {isEditMode ? (

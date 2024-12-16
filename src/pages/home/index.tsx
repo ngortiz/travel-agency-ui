@@ -32,6 +32,7 @@ const StyledCarouselItem = styled(Box)`
   border-radius: 10px;
   overflow: hidden;
   position: relative;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 `;
 
 const StyledOverlay = styled(Box)`
@@ -40,7 +41,7 @@ const StyledOverlay = styled(Box)`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, rgba(0, 0, 0, -0.7), rgba(0, 0, 0, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +132,7 @@ const Home: React.FC = () => {
   }, []);
 
   const handleWhatsApp = () => {
-    const phoneNumber = '123456789';
+    const phoneNumber = '+595985163420';
     const message =
       '¡Hola! Estoy interesado en más información sobre los paquetes de viaje.';
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -174,14 +175,16 @@ const Home: React.FC = () => {
       image: image1,
     },
     {
-      title: 'Descubre lugares únicos',
-      description: 'Aventuras inolvidables en cada rincón del mundo.',
+      title: 'Viajes Personalizados',
+      description: 'Diseñados para ti y tus necesidades.',
       image: image2,
+      actionText: 'Descubre más',
     },
     {
-      title: 'Viaja con nosotros',
-      description: 'Tu viaje comienza aquí.',
+      title: 'Aventuras Únicas',
+      description: 'Descubre destinos fuera de lo común.',
       image: image3,
+      actionText: 'Reserva ahora',
     },
   ];
 

@@ -61,18 +61,21 @@ const AdminButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s ease;
   font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 
   &:hover {
     background-color: #ffffff !important;
     color: ${COLORS.primary};
     border: 2px solid ${COLORS.primary};
+    transform: scale(1.05); /* Efecto visual al pasar el ratón */
   }
 
   @media (max-width: 600px) {
-    padding: 0.3rem 0.8rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem; /* Reduce el padding */
+    font-size: 0.85rem; /* Ajusta el tamaño de la fuente */
+    width: 100%; /* Haz que el botón ocupe todo el ancho en móviles */
+    margin-top: 10px; /* Espacio adicional para separarlo de otros elementos */
   }
 `;
 
@@ -91,7 +94,7 @@ const NavBar: React.FC = () => {
   };
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/123456789', '_blank');
+    window.open('https://wa.me/+595985163420', '_blank');
   };
 
   const handleEmailClick = () => {
