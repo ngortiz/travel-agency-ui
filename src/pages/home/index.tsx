@@ -39,11 +39,11 @@ const StyledCarouselItem = styled(Box)`
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 
   @media (max-width: 900px) {
-    height: 350px;
+    height: 400px;
   }
 
   @media (max-width: 600px) {
-    height: 200px;
+    height: 250px;
   }
 `;
 
@@ -143,10 +143,9 @@ const Home: React.FC = () => {
     setOpen(true);
   }, []);
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = (packageName: string) => {
     const phoneNumber = '+595985163420';
-    const message =
-      '¡Hola! Estoy interesado en más información sobre los paquetes de viaje.';
+    const message = `¡Hola! Estoy interesado en más información sobre el paquete: ${packageName}.`;
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
       message
     )}`;
@@ -264,7 +263,7 @@ const Home: React.FC = () => {
                     description={pkg.description}
                     sell_price={Number(pkg.sell_price) || 0}
                     onClick={() => handleViewMore(pkg)}
-                    onWhatsApp={handleWhatsApp}
+                    onWhatsApp={() => handleWhatsApp(pkg.name)}
                     onDelete={handleDelete}
                   />
                 </StyledPackageCard>
