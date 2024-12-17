@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import styled from 'styled-components';
 import { Email, WhatsApp } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const COLORS = {
@@ -48,7 +48,7 @@ const StyledTypography = styled(Typography)`
   }
 
   @media (max-width: 600px) {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 `;
 
@@ -68,20 +68,21 @@ const AdminButton = styled.button`
     background-color: #ffffff !important;
     color: ${COLORS.primary};
     border: 2px solid ${COLORS.primary};
-    transform: scale(1.05); /* Efecto visual al pasar el ratón */
+    transform: scale(1.05);
   }
 
   @media (max-width: 600px) {
-    padding: 0.4rem 0.8rem; /* Reduce el padding */
-    font-size: 0.85rem; /* Ajusta el tamaño de la fuente */
-    width: 100%; /* Haz que el botón ocupe todo el ancho en móviles */
-    margin-top: 10px; /* Espacio adicional para separarlo de otros elementos */
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    width: auto;
+    max-width: 100%;
+    text-align: center;
   }
 `;
 
 const NavBar: React.FC = () => {
   const navigate = useNavigate();
-
+  const location = useLocation(); // Detectar la ruta actual
   const { isAuthenticated, logout } = useAuth();
 
   const handleButtonClick = () => {
@@ -99,6 +100,10 @@ const NavBar: React.FC = () => {
 
   const handleEmailClick = () => {
     window.location.href = 'mailto:contacto@agencytravel.com';
+  };
+
+  const handleGoToAdmin = () => {
+    navigate('/admin');
   };
 
   return (
@@ -126,6 +131,11 @@ const NavBar: React.FC = () => {
                 </IconButton>
                 Email
               </StyledTypography>
+
+              {/* Botón "Ir al Admin" solo visible en Home */}
+              {location.pathname === '/' && isAuthenticated && (
+                <AdminButton onClick={handleGoToAdmin}>Ir al Admin</AdminButton>
+              )}
 
               {/* Botón de administración */}
               <AdminButton onClick={handleButtonClick}>
