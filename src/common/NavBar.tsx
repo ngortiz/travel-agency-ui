@@ -98,10 +98,6 @@ const NavBar: React.FC = () => {
     window.open('https://wa.me/+595985163420', '_blank');
   };
 
-  const handleEmailClick = () => {
-    window.location.href = 'mailto:contacto@agencytravel.com';
-  };
-
   const handleGoToAdmin = () => {
     navigate('/admin');
   };
@@ -123,13 +119,6 @@ const NavBar: React.FC = () => {
                   <WhatsApp />
                 </IconButton>
                 Contacto
-              </StyledTypography>
-
-              <StyledTypography variant='h6' onClick={handleEmailClick}>
-                <IconButton aria-label='Email'>
-                  <Email />
-                </IconButton>
-                Email
               </StyledTypography>
 
               {/* Botón "Ir al Admin" solo visible en Home */}
