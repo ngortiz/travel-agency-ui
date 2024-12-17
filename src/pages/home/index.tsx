@@ -11,19 +11,23 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
-import image1 from '../../assets/image1.jpg';
-import image2 from '../../assets/image2.jpg';
-import image3 from '../../assets/image3.jpg';
+import image1 from '../../assets/image1.png';
+import image2 from '../../assets/image2.png';
+import image3 from '../../assets/image3.png';
+import image4 from '../../assets/image4.png';
 
 import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
-import { red } from '@mui/material/colors';
 
 const StyledCarouselItem = styled(Box)`
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
-  height: 700px;
+  width: 100%;
+  max-width: 1900px;
+  height: 600px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,6 +37,14 @@ const StyledCarouselItem = styled(Box)`
   overflow: hidden;
   position: relative;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 900px) {
+    height: 350px;
+  }
+
+  @media (max-width: 600px) {
+    height: 200px;
+  }
 `;
 
 const StyledOverlay = styled(Box)`
@@ -170,21 +182,16 @@ const Home: React.FC = () => {
 
   const carouselItems = [
     {
-      title: 'Bienvenidos a nuestra agencia',
-      description: 'Ofrecemos las mejores experiencias de viaje.',
       image: image1,
     },
     {
-      title: 'Viajes Personalizados',
-      description: 'Diseñados para ti y tus necesidades.',
       image: image2,
-      actionText: 'Descubre más',
     },
     {
-      title: 'Aventuras Únicas',
-      description: 'Descubre destinos fuera de lo común.',
       image: image3,
-      actionText: 'Reserva ahora',
+    },
+    {
+      image: image4,
     },
   ];
 
@@ -215,12 +222,7 @@ const Home: React.FC = () => {
                 <Typography
                   variant='h2'
                   sx={{ fontWeight: 'bold', color: '#fff' }}
-                >
-                  {item.title}
-                </Typography>
-                <Typography variant='h5' sx={{ color: '#fff', opacity: 0.85 }}>
-                  {item.description}
-                </Typography>
+                ></Typography>
               </Box>
             </StyledOverlay>
           </StyledCarouselItem>

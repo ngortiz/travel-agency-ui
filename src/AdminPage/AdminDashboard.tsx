@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiPackage, FiImage, FiMenu, FiX } from 'react-icons/fi';
+import { FiPackage, FiImage, FiMenu, FiX, FiHome } from 'react-icons/fi';
 
 const DashboardContainer = styled.div`
   display: flex;
@@ -56,7 +56,7 @@ const StyledLink = styled(Link)`
   color: #127ca8;
   text-decoration: none;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: bold;
   display: flex;
   align-items: center;
   padding: 0.75rem 1rem;
@@ -122,6 +122,13 @@ const AdminDashboard: React.FC = () => {
       <Sidebar $isOpen={isSidebarOpen}>
         <h3>GLOBE TRAVEL</h3>
         <MenuList>
+          <MenuItem>
+            <StyledLink to='/'>
+              <FiHome size={20} />
+              <span className='material-symbols-outlined'>Home</span>
+            </StyledLink>
+          </MenuItem>
+
           <MenuItem>
             <StyledLink to='/admin/create-package'>
               <FiPackage size={20} />
