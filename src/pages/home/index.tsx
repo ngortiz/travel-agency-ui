@@ -8,6 +8,8 @@ import {
   Typography,
   InputAdornment,
   CircularProgress,
+  Pagination,
+  Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
@@ -15,10 +17,11 @@ import image1 from '../../assets/image1.png';
 import image2 from '../../assets/image2.png';
 import image3 from '../../assets/image3.png';
 import image4 from '../../assets/image4.png';
-
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
+import Footer from '../../Footer';
 
 const StyledCarouselItem = styled(Box)`
   background-size: contain;
@@ -36,7 +39,6 @@ const StyledCarouselItem = styled(Box)`
   border-radius: 10px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 
   @media (max-width: 900px) {
     height: 400px;
@@ -53,7 +55,6 @@ const StyledOverlay = styled(Box)`
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, -0.7), rgba(0, 0, 0, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,6 +111,8 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [packagesPerPage] = useState(6);
 
   const fetchPackages = async () => {
     try {
@@ -132,10 +135,16 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = packages.filter((pkg) =>
-      pkg.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = packages.filter((pkg) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        pkg.name.toLowerCase().includes(query) ||
+        pkg.description.toLowerCase().includes(query) ||
+        pkg.sell_price.toString().includes(query)
+      );
+    });
     setFilteredPackages(filtered);
+    setCurrentPage(1);
   }, [searchQuery, packages]);
 
   const handleViewMore = React.useCallback((packageDetails: PackageDetails) => {
@@ -155,6 +164,17 @@ const Home: React.FC = () => {
   const handleClose = () => {
     setOpen(false);
     setSelectedPackage(null);
+  };
+  const totalPages = Math.ceil(filteredPackages.length / packagesPerPage);
+  const indexOfLastPackage = currentPage * packagesPerPage;
+  const indexOfFirstPackage = indexOfLastPackage - packagesPerPage;
+  const currentPackages = filteredPackages.slice(
+    indexOfFirstPackage,
+    indexOfLastPackage
+  );
+
+  const handlePageChange = (_: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
   };
 
   const handleDelete = async (id: number) => {
@@ -251,25 +271,67 @@ const Home: React.FC = () => {
           </Box>
         ) : error ? (
           <Typography color='error'>Error: {error}</Typography>
+        ) : filteredPackages.length === 0 ? (
+          <Alert
+            severity='info'
+            action={
+              <Box
+                display='flex'
+                alignItems='center'
+                sx={{ cursor: 'pointer', color: '#25D366' }}
+                onClick={() => {
+                  const phoneNumber = '+595985163420';
+                  const message =
+                    '¡Hola! Estoy buscando un paquete que no aparece en la página. ¿Podrían ayudarme, por favor?';
+                  const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+                    message
+                  )}`;
+                  window.open(url, '_blank');
+                }}
+              >
+                <WhatsAppIcon sx={{ marginRight: '5px' }} />
+                Solicitar al WhatsApp
+              </Box>
+            }
+          >
+            No se encontraron resultados. Si no encuentra lo que busca, puede
+            solicitarlo directamente..
+          </Alert>
         ) : (
-          <Grid container spacing={3}>
-            {filteredPackages.map((pkg) => (
-              <Grid item xs={12} sm={6} md={4} key={pkg.id}>
-                <StyledPackageCard>
-                  <PackageCard
-                    id={pkg.id}
-                    image_url={pkg.image_url}
-                    name={pkg.name}
-                    description={pkg.description}
-                    sell_price={Number(pkg.sell_price) || 0}
-                    onClick={() => handleViewMore(pkg)}
-                    onWhatsApp={() => handleWhatsApp(pkg.name)}
-                    onDelete={handleDelete}
-                  />
-                </StyledPackageCard>
-              </Grid>
-            ))}
-          </Grid>
+          <>
+            <Grid container spacing={3}>
+              {currentPackages.map((pkg) => (
+                <Grid item xs={12} sm={6} md={4} key={pkg.id}>
+                  <StyledPackageCard>
+                    <PackageCard
+                      id={pkg.id}
+                      image_url={pkg.image_url}
+                      name={pkg.name}
+                      description={pkg.description}
+                      sell_price={Number(pkg.sell_price) || 0}
+                      onClick={() => handleViewMore(pkg)}
+                      onWhatsApp={() => handleWhatsApp(pkg.name)}
+                      onDelete={handleDelete}
+                    />
+                  </StyledPackageCard>
+                </Grid>
+              ))}
+            </Grid>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: '20px',
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color='primary'
+              />
+            </Box>
+          </>
         )}
       </Container>
 
@@ -278,6 +340,7 @@ const Home: React.FC = () => {
         handleClose={handleClose}
         packageDetails={selectedPackage}
       />
+      <Footer />
     </Box>
   );
 };
