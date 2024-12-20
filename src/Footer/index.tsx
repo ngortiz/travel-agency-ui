@@ -42,10 +42,10 @@ const Footer: React.FC = () => {
         </Typography>
         <Box display='flex' alignItems='center' gap='8px'>
           <LocationOn />
-          <Typography>
-            Constitución Nacional casi Antequera, Encarnación, Paraguay, 6000
-          </Typography>
+          <Typography>Constitución Nacional casi Antequera, 6000</Typography>
         </Box>
+        <Typography>Encarnación, Paraguay</Typography>
+
         <Box display='flex' alignItems='center' gap='8px'>
           <Phone />
           <Typography>0984 489517</Typography>

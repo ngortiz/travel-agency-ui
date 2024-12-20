@@ -8,8 +8,8 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #e0f7fa, #fffffff);
-  padding: 20px;
+  background: linear-gradient(135deg, #f0f7ff, #ffffff);
+  padding: 40px 20px;
 `;
 
 const Title = styled.h2`
@@ -19,17 +19,21 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+const BannerContainer = styled.div`
+  display: grid;
+  gap: 20px;
+  width: 90%;
+  max-width: 500px;
+`;
+
 const UploadBox = styled.div`
   background-color: #ffffff;
-  padding: 40px;
+  padding: 30px;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
   text-align: center;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #127ca8;
 
   &:hover {
     transform: translateY(-5px);
@@ -103,48 +107,69 @@ const Button = styled.button`
   }
 `;
 
-const UploadBanner: React.FC = () => {
-  const [file, setFile] = useState<File | null>(null);
+const UploadBanners: React.FC = () => {
+  const [banners, setBanners] = useState<{ [key: string]: File | null }>({
+    banner1: null,
+    banner2: null,
+    banner3: null,
+    banner4: null,
+  });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    bannerKey: string
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBanners((prev) => ({
+        ...prev,
+        [bannerKey]: file,
+      }));
     }
   };
 
-  const handleUpload = () => {
+  const handleUpload = (bannerKey: string) => {
+    const file = banners[bannerKey];
     if (file) {
-      alert(`Subiendo archivo: ${file.name}`);
+      alert(`Subiendo archivo para ${bannerKey}: ${file.name}`);
     } else {
-      alert('Por favor selecciona un archivo antes de subir.');
+      alert(
+        `Por favor selecciona un archivo para ${bannerKey} antes de subir.`
+      );
     }
   };
 
   return (
     <Container>
-      <Title>Subir Banner</Title>
-      <UploadBox>
-        <UploadSection>
-          <Label htmlFor="file-upload">
-            <FiUpload />
-            Selecciona un archivo de imagen
-          </Label>
-          <Input
-            id="file-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          {file ? (
-            <FileName>{file.name}</FileName>
-          ) : (
-            <Placeholder>No se ha seleccionado un archivo</Placeholder>
-          )}
-          <Button onClick={handleUpload}>Subir Banner</Button>
-        </UploadSection>
-      </UploadBox>
+      <Title>Subir Banners</Title>
+      <BannerContainer>
+        {Object.keys(banners).map((bannerKey) => (
+          <UploadBox key={bannerKey}>
+            <UploadSection>
+              <Label htmlFor={`file-upload-${bannerKey}`}>
+                <FiUpload />
+                Selecciona un archivo para {bannerKey.toUpperCase()}
+              </Label>
+              <Input
+                id={`file-upload-${bannerKey}`}
+                type='file'
+                accept='image/*'
+                onChange={(e) => handleFileChange(e, bannerKey)}
+              />
+              {banners[bannerKey] ? (
+                <FileName>{banners[bannerKey]?.name}</FileName>
+              ) : (
+                <Placeholder>No se ha seleccionado un archivo</Placeholder>
+              )}
+              <Button onClick={() => handleUpload(bannerKey)}>
+                Subir {bannerKey.toUpperCase()}
+              </Button>
+            </UploadSection>
+          </UploadBox>
+        ))}
+      </BannerContainer>
     </Container>
   );
 };
 
-export default UploadBanner;
+export default UploadBanners;

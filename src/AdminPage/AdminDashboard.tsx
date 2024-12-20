@@ -20,7 +20,7 @@ const Sidebar = styled.nav<{ $isOpen: boolean }>`
   border-radius: 10px;
   width: 250px;
   transition: all 0.3s ease;
-  margin-top: 5%;
+  margin-top: 4%;
 
   h3 {
     margin-bottom: 2rem;
