@@ -13,10 +13,6 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
-import image1 from '../../assets/image1.png';
-import image2 from '../../assets/image2.png';
-import image3 from '../../assets/image3.png';
-import image4 from '../../assets/image4.png';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
@@ -113,6 +109,22 @@ const Home: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [packagesPerPage] = useState(6);
+  const [banners, setBanners] = useState<string[]>([]);
+
+  const fetchBanners = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/banners`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setBanners(data.map((banner: { image_url: string }) => banner.image_url));
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPackages = async () => {
     try {
@@ -132,6 +144,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     fetchPackages();
+    fetchBanners();
   }, []);
 
   useEffect(() => {
@@ -199,21 +212,6 @@ const Home: React.FC = () => {
     }
   };
 
-  const carouselItems = [
-    {
-      image: image1,
-    },
-    {
-      image: image2,
-    },
-    {
-      image: image3,
-    },
-    {
-      image: image4,
-    },
-  ];
-
   return (
     <Box sx={{ marginTop: '64px' }}>
       {/* Carousel */}
@@ -231,10 +229,10 @@ const Home: React.FC = () => {
           style: { backgroundColor: 'rgba(0, 0, 0, 0.5)', borderRadius: '50%' },
         }}
       >
-        {carouselItems.map((item, index) => (
+        {banners.map((image, index) => (
           <StyledCarouselItem
             key={index}
-            sx={{ backgroundImage: `url(${item.image})` }}
+            sx={{ backgroundImage: `url(${image})` }}
           >
             <StyledOverlay>
               <Box sx={{ maxWidth: '70%' }}>
