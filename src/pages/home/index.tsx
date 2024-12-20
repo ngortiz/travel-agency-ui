@@ -44,8 +44,8 @@ const StyledCarouselItem = styled(Box)`
     height: 400px;
   }
 
-  @media (max-width: 600px) {
-    height: 250px;
+  @media (max-width: 700px) {
+    height: 300px;
   }
 `;
 
