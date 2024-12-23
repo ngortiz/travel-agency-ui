@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FiUpload } from 'react-icons/fi';
+import { FiUpload, FiTrash } from 'react-icons/fi';
 
 const Container = styled.div`
   display: flex;
@@ -19,6 +19,18 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+const Notification = styled.div`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #127ca8;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+`;
+
 const BannerContainer = styled.div`
   display: grid;
   gap: 20px;
@@ -32,13 +44,7 @@ const UploadBox = styled.div`
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid #127ca8;
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-  }
 `;
 
 const UploadSection = styled.div`
@@ -66,17 +72,11 @@ const Input = styled.input`
   display: none;
 `;
 
-const FileName = styled.p`
-  font-size: 1rem;
-  color: #666;
-  margin-top: 10px;
-  font-style: italic;
-`;
-
-const Placeholder = styled.p`
-  font-size: 1rem;
-  color: #999;
-  font-style: italic;
+const PreviewImage = styled.img`
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+  border-radius: 10px;
   margin-top: 10px;
 `;
 
@@ -85,88 +85,155 @@ const Button = styled.button`
   max-width: 200px;
   padding: 10px 20px;
   background-color: #127ca8;
-  color: #ffffff;
+  color: white;
   border: none;
   border-radius: 10px;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   margin-top: 20px;
+  cursor: pointer;
 
-  &:hover {
-    color: #127ca8;
-    background-color: #ffffff;
-    border: 2px solid #127ca8;
-  }
-
-  &:active {
-    background-color: #084268;
-    transform: scale(0.98);
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
   }
 `;
 
-const UploadBanners: React.FC = () => {
-  const [banners, setBanners] = useState<{ [key: string]: File | null }>({
-    banner1: null,
-    banner2: null,
-    banner3: null,
-    banner4: null,
-  });
+const DeleteButton = styled(Button)`
+  background-color: #ff5c5c;
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    bannerKey: string
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBanners((prev) => ({
-        ...prev,
-        [bannerKey]: file,
-      }));
+  &:hover {
+    background-color: white;
+    color: #ff5c5c;
+    border: 2px solid #ff5c5c;
+  }
+`;
+
+const convertImageToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = (reader.result as string).split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+const UploadBanners: React.FC = () => {
+  const [banners, setBanners] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const fetchBanners = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/banners`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setBanners(data);
+    } catch (error) {
+      console.error('Error fetching banners:', error);
     }
   };
 
-  const handleUpload = (bannerKey: string) => {
-    const file = banners[bannerKey];
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  const addNotification = (message: string) => {
+    setNotifications((prev) => [...prev, message]);
+    setTimeout(() => setNotifications((prev) => prev.slice(1)), 3000);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
-      alert(`Subiendo archivo para ${bannerKey}: ${file.name}`);
-    } else {
-      alert(
-        `Por favor selecciona un archivo para ${bannerKey} antes de subir.`
-      );
+      setIsUploading(true);
+      try {
+        const base64Image = await convertImageToBase64(file);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/banners`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              banner: {
+                image: {
+                  format: file.type.split('/')[1],
+                  data: base64Image,
+                },
+              },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        addNotification('Banner subido con éxito');
+        fetchBanners();
+      } catch (error) {
+        console.error('Error uploading banner:', error);
+        addNotification('Error al subir el banner');
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este banner?')) {
+      return;
+    }
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/banners/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+      addNotification('Banner eliminado con éxito');
+      fetchBanners();
+    } catch (error) {
+      console.error('Error deleting banner:', error);
+      addNotification('Error al eliminar el banner');
     }
   };
 
   return (
     <Container>
       <Title>Subir Banners</Title>
+      {notifications.map((note, index) => (
+        <Notification key={index}>{note}</Notification>
+      ))}
       <BannerContainer>
-        {Object.keys(banners).map((bannerKey) => (
-          <UploadBox key={bannerKey}>
-            <UploadSection>
-              <Label htmlFor={`file-upload-${bannerKey}`}>
-                <FiUpload />
-                Selecciona un archivo para {bannerKey.toUpperCase()}
-              </Label>
-              <Input
-                id={`file-upload-${bannerKey}`}
-                type='file'
-                accept='image/*'
-                onChange={(e) => handleFileChange(e, bannerKey)}
-              />
-              {banners[bannerKey] ? (
-                <FileName>{banners[bannerKey]?.name}</FileName>
-              ) : (
-                <Placeholder>No se ha seleccionado un archivo</Placeholder>
-              )}
-              <Button onClick={() => handleUpload(bannerKey)}>
-                Subir {bannerKey.toUpperCase()}
-              </Button>
-            </UploadSection>
+        {banners.map((banner) => (
+          <UploadBox key={banner.id}>
+            <PreviewImage src={banner.image_url} alt={`Banner ${banner.id}`} />
+            <DeleteButton onClick={() => handleDelete(banner.id)}>
+              <FiTrash /> Eliminar
+            </DeleteButton>
           </UploadBox>
         ))}
+        <UploadBox>
+          <UploadSection>
+            <Label htmlFor='file-upload'>
+              <FiUpload />
+              Selecciona un archivo
+            </Label>
+            <Input
+              id='file-upload'
+              type='file'
+              accept='image/*'
+              onChange={handleFileChange}
+            />
+            {isUploading && <Button disabled>Subiendo...</Button>}
+          </UploadSection>
+        </UploadBox>
       </BannerContainer>
     </Container>
   );
