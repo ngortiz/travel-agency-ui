@@ -249,7 +249,7 @@ const CreatePackage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validar todos los campos antes de enviar
+    // Validacion de los campos
     const isFormValid =
       formData.name.length >= 4 &&
       formData.name.length <= 50 &&
