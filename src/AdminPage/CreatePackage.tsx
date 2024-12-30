@@ -143,10 +143,18 @@ const CreatePackage: React.FC = () => {
     non_included_services: '',
     image_url: '',
   });
+  const [fieldValidity, setFieldValidity] = useState({
+    name: true,
+    description: true,
+    city: true,
+    country: true,
+    included_services: true,
+  });
 
   const [image, setImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); // muestra la vista previa
   const [loading, setLoading] = useState(false);
+
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -216,7 +224,21 @@ const CreatePackage: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setFormData({ ...formData, [name]: value });
+
+    // Validación de longitud mínima y máxima
+    if (
+      name === 'name' ||
+      name === 'description' ||
+      name === 'city' ||
+      name === 'country' ||
+      name === 'included_services'
+    ) {
+      const isValid = value.length >= 4 && value.length <= 50;
+      setFieldValidity({ ...fieldValidity, [name]: isValid });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,6 +249,32 @@ const CreatePackage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validacion de los campos
+    const isFormValid =
+      formData.name.length >= 4 &&
+      formData.name.length <= 50 &&
+      formData.description.length >= 4 &&
+      formData.description.length <= 50 &&
+      formData.city.length >= 4 &&
+      formData.city.length <= 50 &&
+      formData.country.length >= 4 &&
+      formData.country.length <= 50;
+    formData.included_services.length >= 4 &&
+      formData.included_services.length <= 50;
+
+    if (!isFormValid) {
+      setNotification({
+        show: true,
+        message:
+          'Por favor, revisa los campos. Algunos no cumplen con los requisitos.',
+        type: 'error',
+      });
+      setTimeout(
+        () => setNotification({ show: false, message: '', type: 'success' }),
+        3000
+      );
+      return;
+    }
 
     if (!image && !formData.image_url) {
       setNotification({
@@ -374,7 +422,11 @@ const CreatePackage: React.FC = () => {
             placeholder='Ingrese el nombre del paquete'
             onChange={handleChange}
             value={formData.name}
+            className={!fieldValidity.name ? 'is-invalid' : ''}
           />
+          {!fieldValidity.name && (
+            <small>El nombre debe tener entre 4 y 50 caracteres.</small>
+          )}
         </FormGroup>
         <FormGroup>
           <Label>Descripción:</Label>
@@ -383,7 +435,11 @@ const CreatePackage: React.FC = () => {
             placeholder='Ingrese una descripción'
             onChange={handleChange}
             value={formData.description}
+            className={!fieldValidity.description ? 'is-invalid' : ''}
           ></TextArea>
+          {!fieldValidity.description && (
+            <small>La descripción debe tener entre 4 y 50 caracteres.</small>
+          )}
         </FormGroup>
         <FormGroup>
           <Label>Precio de Costo:</Label>
@@ -413,7 +469,11 @@ const CreatePackage: React.FC = () => {
             placeholder='Ingrese la ciudad'
             onChange={handleChange}
             value={formData.city}
+            className={!fieldValidity.city ? 'is-invalid' : ''}
           />
+          {!fieldValidity.city && (
+            <small>La ciudad debe tener entre 4 y 50 caracteres.</small>
+          )}
         </FormGroup>
         <FormGroup>
           <Label>País:</Label>
@@ -423,7 +483,11 @@ const CreatePackage: React.FC = () => {
             placeholder='Ingrese el país'
             onChange={handleChange}
             value={formData.country}
+            className={!fieldValidity.country ? 'is-invalid' : ''}
           />
+          {!fieldValidity.country && (
+            <small>El país debe tener entre 4 y 50 caracteres.</small>
+          )}
         </FormGroup>
         <FormGroup>
           <Label>Fecha de Inicio:</Label>
@@ -450,7 +514,11 @@ const CreatePackage: React.FC = () => {
             placeholder='Ingrese los servicios'
             onChange={handleChange}
             value={formData.included_services}
+            className={!fieldValidity.included_services ? 'is-invalid' : ''}
           ></TextArea>
+          {!fieldValidity.included_services && (
+            <small>El país debe tener entre 4 y 50 caracteres.</small>
+          )}
         </FormGroup>
         <FormGroup>
           <Label>Imagen del Paquete:</Label>
