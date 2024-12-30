@@ -438,7 +438,7 @@ const CreatePackage: React.FC = () => {
             className={!fieldValidity.description ? 'is-invalid' : ''}
           ></TextArea>
           {!fieldValidity.description && (
-            <small>La descripción debe tener entre 4 y 50 caracteres.</small>
+            <small>La descripción debe tener entre 4 y 300 caracteres.</small>
           )}
         </FormGroup>
         <FormGroup>

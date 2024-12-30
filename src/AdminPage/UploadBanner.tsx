@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FiUpload, FiTrash } from 'react-icons/fi';
+import { CircularProgress, Box } from '@mui/material';
 
 const Container = styled.div`
   display: flex;
@@ -123,8 +124,10 @@ const UploadBanners: React.FC = () => {
   const [banners, setBanners] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchBanners = async () => {
+    setIsLoading(true); // Activar estado de carga
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/banners`);
       if (!response.ok) {
@@ -134,6 +137,8 @@ const UploadBanners: React.FC = () => {
       setBanners(data);
     } catch (error) {
       console.error('Error fetching banners:', error);
+    } finally {
+      setIsLoading(false); // Desactivar estado de carga
     }
   };
 
@@ -210,31 +215,45 @@ const UploadBanners: React.FC = () => {
       {notifications.map((note, index) => (
         <Notification key={index}>{note}</Notification>
       ))}
-      <BannerContainer>
-        {banners.map((banner) => (
-          <UploadBox key={banner.id}>
-            <PreviewImage src={banner.image_url} alt={`Banner ${banner.id}`} />
-            <DeleteButton onClick={() => handleDelete(banner.id)}>
-              <FiTrash /> Eliminar
-            </DeleteButton>
+      {isLoading ? (
+        <Box
+          display='flex'
+          justifyContent='center'
+          alignItems='center'
+          height='100vh'
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <BannerContainer>
+          {banners.map((banner) => (
+            <UploadBox key={banner.id}>
+              <PreviewImage
+                src={banner.image_url}
+                alt={`Banner ${banner.id}`}
+              />
+              <DeleteButton onClick={() => handleDelete(banner.id)}>
+                <FiTrash /> Eliminar
+              </DeleteButton>
+            </UploadBox>
+          ))}
+          <UploadBox>
+            <UploadSection>
+              <Label htmlFor='file-upload'>
+                <FiUpload />
+                Selecciona un archivo
+              </Label>
+              <Input
+                id='file-upload'
+                type='file'
+                accept='image/*'
+                onChange={handleFileChange}
+              />
+              {isUploading && <Button disabled>Subiendo...</Button>}
+            </UploadSection>
           </UploadBox>
-        ))}
-        <UploadBox>
-          <UploadSection>
-            <Label htmlFor='file-upload'>
-              <FiUpload />
-              Selecciona un archivo
-            </Label>
-            <Input
-              id='file-upload'
-              type='file'
-              accept='image/*'
-              onChange={handleFileChange}
-            />
-            {isUploading && <Button disabled>Subiendo...</Button>}
-          </UploadSection>
-        </UploadBox>
-      </BannerContainer>
+        </BannerContainer>
+      )}
     </Container>
   );
 };
