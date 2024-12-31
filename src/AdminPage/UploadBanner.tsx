@@ -127,7 +127,7 @@ const UploadBanners: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchBanners = async () => {
-    setIsLoading(true); // Activar estado de carga
+    setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/banners`);
       if (!response.ok) {
@@ -138,7 +138,7 @@ const UploadBanners: React.FC = () => {
     } catch (error) {
       console.error('Error fetching banners:', error);
     } finally {
-      setIsLoading(false); // Desactivar estado de carga
+      setIsLoading(false);
     }
   };
 
