@@ -324,7 +324,7 @@ const CreatePackage: React.FC = () => {
                 data: imageBase64,
                 format: image ? image.type.split('/')[1].toUpperCase() : '',
               }
-            : formData.image_url // Si no hay imagen nueva, usa la URL existente
+            : formData.image_url // Si no hay imagen nueva, se usa la URL existente
             ? { url: formData.image_url }
             : null,
         },
@@ -438,7 +438,7 @@ const CreatePackage: React.FC = () => {
             className={!fieldValidity.description ? 'is-invalid' : ''}
           ></TextArea>
           {!fieldValidity.description && (
-            <small>La descripción debe tener entre 4 y 50 caracteres.</small>
+            <small>La descripción debe tener entre 4 y 300 caracteres.</small>
           )}
         </FormGroup>
         <FormGroup>
