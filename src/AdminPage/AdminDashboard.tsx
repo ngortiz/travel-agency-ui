@@ -141,6 +141,12 @@ const AdminDashboard: React.FC = () => {
               Banner
             </StyledLink>
           </MenuItem>
+          <MenuItem>
+            <StyledLink to='/admin/register-income-expense'>
+              <FiPackage size={20} />
+              Registrar Ingreso/Gasto
+            </StyledLink>
+          </MenuItem>
         </MenuList>
       </Sidebar>
 

@@ -7,6 +7,7 @@ import AdminLogin from './AdminPage/AdminLogin';
 
 import CreatePackage from './AdminPage/CreatePackage';
 import UploadBanner from './AdminPage/UploadBanner';
+import RegisterIncomeExpense from './AdminPage/RegisterIncomeExpense';
 import AdminDashboard from './AdminPage/AdminDashboard';
 
 const App: React.FC = () => {
@@ -28,6 +29,10 @@ const App: React.FC = () => {
           <Route path='create-package' element={<CreatePackage />} />
           <Route path='create-package/:id' element={<CreatePackage />} />
           <Route path='upload-banner' element={<UploadBanner />} />
+          <Route
+            path='register-income-expense'
+            element={<RegisterIncomeExpense />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>
