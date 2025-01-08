@@ -13,9 +13,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Divider,
+  IconButton,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const FormPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -55,6 +56,21 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   },
   '& .MuiInputLabel-root': {
     color: '#1a76d2',
+  },
+}));
+
+const StyledIconButton = styled(IconButton)(({ theme }) => ({
+  borderRadius: '50%',
+  padding: theme.spacing(1),
+  background: 'linear-gradient(90deg, #2196f3, #4caf50)',
+  color: '#ffffff',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+  transition: 'background 0.3s ease, transform 0.2s ease',
+  marginLeft: '20px',
+  marginTop: '22px',
+  '&:hover': {
+    background: 'linear-gradient(90deg, #1e88e5, #43a047)',
+    transform: 'scale(1.1)',
   },
 }));
 
@@ -311,16 +327,16 @@ const RegisterIncomeExpense: React.FC = () => {
                       <MenuItem value='Exento'>Exento</MenuItem>
                     </StyledTextField>
                   </Grid>
-                  <Grid item xs={12} md={3}>
-                    <StyledButton
-                      variant='contained'
-                      color='secondary'
-                      onClick={() => removeTransactionDetail(index)}
-                    >
-                      Quitar
-                    </StyledButton>
-                  </Grid>
+                  {/* IconButton con DeleteIcon */}
+                  <StyledIconButton
+                    color='error'
+                    onClick={() => removeTransactionDetail(index)}
+                    sx={{ padding: 1 }}
+                  >
+                    <DeleteIcon />
+                  </StyledIconButton>
                 </Grid>
+
                 <Grid container spacing={3} mt={2}>
                   <Grid item xs={12}>
                     <StyledTextField
@@ -336,6 +352,7 @@ const RegisterIncomeExpense: React.FC = () => {
                 </Grid>
               </Box>
             ))}
+
             <Box display='flex' justifyContent='flex-end' mt={2}>
               <StyledButton
                 variant='contained'
