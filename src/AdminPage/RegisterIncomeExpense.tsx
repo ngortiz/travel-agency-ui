@@ -13,16 +13,26 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Divider,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 const FormPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  margin: 'auto',
+  margin: '30px',
   maxWidth: 900,
+
   borderRadius: '15px',
-  background: 'linear-gradient(135deg, #e3f2fd, #e8f5e9)',
+  background: 'linear-gradient(135deg, #f5f7fa, #c3d9e8)',
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+}));
+
+const SectionPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: '10px',
+  backgroundColor: '#ffffff',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+  marginBottom: theme.spacing(4),
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
@@ -40,11 +50,11 @@ const StyledButton = styled(Button)(({ theme }) => ({
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: '10px',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f9f9f9',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiInputLabel-root': {
-    color: '#127ca8',
+    color: '#1a76d2',
   },
 }));
 
@@ -54,9 +64,9 @@ const RegisterIncomeExpense: React.FC = () => {
     ruc: '',
     email: '',
     condition: '',
-    type: '',
-    documentType: '',
-    documentNumber: '',
+    transaction_type: '',
+    document_type: '',
+    document_number: '',
     date: '',
   });
 
@@ -85,14 +95,14 @@ const RegisterIncomeExpense: React.FC = () => {
     details.forEach((detail) => {
       const quantity = parseFloat(detail.quantity) || 0;
       const unitPrice = parseFloat(detail.unit_price) || 0;
-      const subtotal = quantity * unitPrice;
+      const subtotal = quantity + unitPrice;
 
       if (detail.tax_type === 'Exento') {
         exempt += subtotal;
       } else if (detail.tax_type === 'IVA 5%') {
         tax5 += subtotal * 0.05;
       } else if (detail.tax_type === 'IVA 10%') {
-        tax10 += subtotal * 0.1;
+        tax10 += subtotal / 1.1;
       }
     });
 
@@ -138,6 +148,12 @@ const RegisterIncomeExpense: React.FC = () => {
     ]);
   };
 
+  const removeTransactionDetail = (index: number) => {
+    const updatedDetails = transactionDetails.filter((_, i) => i !== index);
+    setTransactionDetails(updatedDetails);
+    calculateTotals(updatedDetails);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Formulario enviado:', formData, transactionDetails);
@@ -150,8 +166,8 @@ const RegisterIncomeExpense: React.FC = () => {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e3f2fd, #e8f5e9)',
-        padding: '20px',
+        background: 'linear-gradient(135deg, #f5f7fa, #e3f2fd)',
+        padding: '50px',
       }}
     >
       <FormPaper elevation={6}>
@@ -160,206 +176,202 @@ const RegisterIncomeExpense: React.FC = () => {
         </Typography>
 
         <form onSubmit={handleSubmit}>
-          {/* Cabecera: Datos del Cliente */}
-          <Typography variant='h6' gutterBottom color='textSecondary'>
-            Datos del Cliente
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='client'
-                label='Cliente'
-                value={formData.client}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='ruc'
-                label='RUC'
-                value={formData.ruc}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='email'
-                label='Email'
-                type='email'
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='documentType'
-                label='Tipo de Documento'
-                value={formData.documentType}
-                onChange={handleChange}
-                select
-                fullWidth
-                required
-              >
-                <MenuItem value='factura'>Factura</MenuItem>
-                <MenuItem value='recibo'>Recibo</MenuItem>
-              </StyledTextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='documentNumber'
-                label='Nro de Documento'
-                value={formData.documentNumber}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-          </Grid>
-
-          <Typography
-            variant='h6'
-            gutterBottom
-            color='textSecondary'
-            mt={4}
-          ></Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                select
-                name='condition'
-                label='Condición de Venta'
-                value={formData.condition}
-                onChange={handleChange}
-                fullWidth
-                required
-              >
-                <MenuItem value='contado'>Contado</MenuItem>
-                <MenuItem value='credito'>Crédito</MenuItem>
-              </StyledTextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                select
-                name='type'
-                label='Tipo'
-                value={formData.type}
-                onChange={(e) => handleChange}
-                fullWidth
-                required
-              >
-                <MenuItem value='Ingreso'>Ingreso</MenuItem>
-                <MenuItem value='IVA 5%'>Gasto</MenuItem>
-              </StyledTextField>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <StyledTextField
-                name='date'
-                label='Fecha'
-                type='date'
-                value={formData.date}
-                onChange={handleChange}
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-          </Grid>
-
-          {/* Detalle de la Transacción */}
-          <Typography variant='h6' gutterBottom color='textSecondary' mt={4}>
-            Detalle de la Transacción
-          </Typography>
-          {transactionDetails.map((detail, index) => (
-            <Grid container spacing={3} key={index}>
+          {/* Contenedor: Datos del Cliente */}
+          <SectionPaper>
+            <Typography variant='h6' gutterBottom color='textSecondary'>
+              Datos del Cliente
+            </Typography>
+            <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
                 <StyledTextField
-                  name='quantity'
-                  label='Cantidad'
-                  type='number'
-                  value={detail.quantity}
-                  onChange={(e) => handleChange(e, index)}
+                  name='client'
+                  label='Cliente'
+                  value={formData.client}
+                  onChange={handleChange}
                   fullWidth
                   required
                 />
               </Grid>
               <Grid item xs={12} md={4}>
                 <StyledTextField
-                  name='unit_price'
-                  label='Precio Unitario'
-                  type='number'
-                  value={detail.unit_price}
-                  onChange={(e) => handleChange(e, index)}
+                  name='ruc'
+                  label='RUC'
+                  value={formData.ruc}
+                  onChange={handleChange}
                   fullWidth
-                  required
                 />
               </Grid>
               <Grid item xs={12} md={4}>
                 <StyledTextField
+                  name='email'
+                  label='Email'
+                  type='email'
+                  value={formData.email}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <StyledTextField
+                  name='transaction_type'
+                  label='Tipo '
+                  value={formData.transaction_type}
+                  onChange={(e) => handleChange(e)}
                   select
-                  name='tax_type'
-                  label='Tipo de Impuesto'
-                  value={detail.tax_type}
-                  onChange={(e) => handleChange(e, index)}
                   fullWidth
                   required
                 >
-                  <MenuItem value='IVA 10%'>IVA 10%</MenuItem>
-                  <MenuItem value='IVA 5%'>IVA 5%</MenuItem>
-                  <MenuItem value='Exento'>Exento</MenuItem>
+                  <MenuItem value='factura'>Ingreso</MenuItem>
+                  <MenuItem value='recibo'>Gasto</MenuItem>
                 </StyledTextField>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} md={4}>
                 <StyledTextField
-                  name='description'
-                  label='Descripción'
-                  value={detail.description}
-                  onChange={(e) => handleChange(e, index)}
+                  name='document_type'
+                  label='Tipo de Documento'
+                  value={formData.document_type}
+                  onChange={(e) => handleChange(e)}
+                  select
                   fullWidth
-                  multiline
-                  rows={3}
+                  required
+                >
+                  <MenuItem value='factura'>Factura</MenuItem>
+                  <MenuItem value='recibo'>Recibo</MenuItem>
+                </StyledTextField>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <StyledTextField
+                  name='document_number'
+                  label='Nro de Documento'
+                  value={formData.document_number}
+                  onChange={handleChange}
+                  fullWidth
+                  required
                 />
               </Grid>
+              <Grid item xs={12} md={3}>
+                <StyledTextField
+                  select
+                  name='condition'
+                  label='Condicion de Venta'
+                  value={formData.condition}
+                  onChange={(e) => handleChange(e)}
+                  fullWidth
+                  required
+                >
+                  <MenuItem value='contado'>Contado</MenuItem>
+                  <MenuItem value='credito'>Credito</MenuItem>
+                </StyledTextField>
+              </Grid>
             </Grid>
-          ))}
-          <Box display='flex' justifyContent='flex-end' mt={2}>
-            <StyledButton
-              variant='contained'
-              onClick={addTransactionDetail}
-              type='button'
-            >
-              Agregar
-            </StyledButton>
-          </Box>
+          </SectionPaper>
 
-          {/* Totales */}
-          <Typography variant='h6' gutterBottom color='textSecondary' mt={4}>
-            Totales
-          </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Exentas</TableCell>
-                  <TableCell>IVA 5%</TableCell>
-                  <TableCell>IVA 10%</TableCell>
-                  <TableCell>Total</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell>{totals.exempt.toFixed(2)}</TableCell>
-                  <TableCell>{totals.tax5.toFixed(2)}</TableCell>
-                  <TableCell>{totals.tax10.toFixed(2)}</TableCell>
-                  <TableCell>{totals.total.toFixed(2)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-
+          {/* Contenedor: Detalle de la Transacción */}
+          <SectionPaper>
+            <Typography variant='h6' gutterBottom color='textSecondary'>
+              Detalle de la Transacción
+            </Typography>
+            {transactionDetails.map((detail, index) => (
+              <Box key={index} sx={{ marginBottom: 4 }}>
+                <Grid container spacing={3} alignItems='center'>
+                  <Grid item xs={12} md={3}>
+                    <StyledTextField
+                      name='quantity'
+                      label='Cantidad'
+                      type='number'
+                      value={detail.quantity}
+                      onChange={(e) => handleChange(e, index)}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <StyledTextField
+                      name='unit_price'
+                      label='Precio Unitario'
+                      type='number'
+                      value={detail.unit_price}
+                      onChange={(e) => handleChange(e, index)}
+                      fullWidth
+                      required
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <StyledTextField
+                      select
+                      name='tax_type'
+                      label='Tipo de Impuesto'
+                      value={detail.tax_type}
+                      onChange={(e) => handleChange(e, index)}
+                      fullWidth
+                      required
+                    >
+                      <MenuItem value='IVA 10%'>IVA 10%</MenuItem>
+                      <MenuItem value='IVA 5%'>IVA 5%</MenuItem>
+                      <MenuItem value='Exento'>Exento</MenuItem>
+                    </StyledTextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <StyledButton
+                      variant='contained'
+                      color='secondary'
+                      onClick={() => removeTransactionDetail(index)}
+                    >
+                      Quitar
+                    </StyledButton>
+                  </Grid>
+                </Grid>
+                <Grid container spacing={3} mt={2}>
+                  <Grid item xs={12}>
+                    <StyledTextField
+                      name='description'
+                      label='Descripción'
+                      value={detail.description}
+                      onChange={(e) => handleChange(e, index)}
+                      fullWidth
+                      multiline
+                      rows={3}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            ))}
+            <Box display='flex' justifyContent='flex-end' mt={2}>
+              <StyledButton
+                variant='contained'
+                onClick={addTransactionDetail}
+                type='button'
+              >
+                Agregar
+              </StyledButton>
+            </Box>
+          </SectionPaper>
+          {/* Contenedor: Totales */}
+          <SectionPaper>
+            <Typography variant='h6' gutterBottom color='textSecondary'>
+              Totales
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Exento</TableCell>
+                    <TableCell>IVA 5%</TableCell>
+                    <TableCell>IVA 10%</TableCell>
+                    <TableCell>Total</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{totals.exempt.toFixed(2)}</TableCell>
+                    <TableCell>{totals.tax5.toFixed(2)}</TableCell>
+                    <TableCell>{totals.tax10.toFixed(2)}</TableCell>
+                    <TableCell>{totals.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </SectionPaper>
           {/* Botón Guardar */}
           <Box display='flex' justifyContent='center' mt={4}>
             <StyledButton variant='contained' type='submit'>
