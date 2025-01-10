@@ -297,8 +297,8 @@ const RegisterIncomeExpense: React.FC = () => {
                   fullWidth
                   required
                 >
-                  <MenuItem value='factura'>Ingreso</MenuItem>
-                  <MenuItem value='recibo'>Gasto</MenuItem>
+                  <MenuItem value='ingreso'>Ingreso</MenuItem>
+                  <MenuItem value='egreso'>Egreso</MenuItem>
                 </StyledTextField>
               </Grid>
               <Grid item xs={12} md={4}>
