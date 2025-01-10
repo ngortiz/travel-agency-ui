@@ -103,6 +103,9 @@ const RegisterIncomeExpense: React.FC = () => {
     total: 0,
   });
 
+  const [invoices, setInvoices] = useState([]); // Estado para almacenar las facturas
+
+  // Función para calcular totales
   const calculateTotals = (details: typeof transactionDetails) => {
     let exempt = 0;
     let tax5 = 0;
@@ -130,6 +133,7 @@ const RegisterIncomeExpense: React.FC = () => {
     });
   };
 
+  // Función para manejar cambios
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index?: number
@@ -151,6 +155,7 @@ const RegisterIncomeExpense: React.FC = () => {
     }
   };
 
+  // Función para agregar un nuevo detalle
   const addTransactionDetail = () => {
     setTransactionDetails([
       ...transactionDetails,
@@ -163,12 +168,37 @@ const RegisterIncomeExpense: React.FC = () => {
     ]);
   };
 
+  // Función para eliminar un detalle
   const removeTransactionDetail = (index: number) => {
     const updatedDetails = transactionDetails.filter((_, i) => i !== index);
     setTransactionDetails(updatedDetails);
     calculateTotals(updatedDetails);
   };
 
+  // Función para obtener facturas desde la API
+  const fetchInvoices = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInvoices(data);
+      } else {
+        console.error('Error al obtener las facturas:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error al obtener las facturas:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices(); // Llamar a la API al montar el componente
+  }, []);
+
+  // Función para manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -227,6 +257,8 @@ const RegisterIncomeExpense: React.FC = () => {
           { quantity: '', unit_price: '', tax_type: '', description: '' },
         ]);
         setTotals({ exempt: 0, tax5: 0, tax10: 0, total: 0 });
+
+        fetchInvoices(); // Refrescar las facturas
       } else {
         console.error('Error al enviar los datos:', response.statusText);
       }
@@ -239,6 +271,7 @@ const RegisterIncomeExpense: React.FC = () => {
     <Box
       sx={{
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
@@ -470,9 +503,44 @@ const RegisterIncomeExpense: React.FC = () => {
             </StyledButton>
           </Box>
         </form>
+        {/* Tabla de Facturas */}
+        <Typography variant='h5' gutterBottom>
+          Facturas Registradas
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Nro de Documento</TableCell>
+                <TableCell>Cliente</TableCell>
+                <TableCell>Ruc</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Condición</TableCell>
+                <TableCell>Fecha</TableCell>
+                <TableCell>Total</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {invoices.map((invoice: any, index) => {
+                const headers = invoice.headers || {}; // Asegúrate de que headers no sea undefined
+
+                return (
+                  <TableRow key={index}>
+                    <TableCell>{headers.document_number || 'N/A'}</TableCell>
+                    <TableCell>{headers.customer || 'N/A'}</TableCell>
+                    <TableCell>{headers.ruc || 'N/A'}</TableCell>
+                    <TableCell>{headers.transaction_type || 'N/A'}</TableCell>
+                    <TableCell>{headers.condition || 'N/A'}</TableCell>
+                    <TableCell>{headers.date || 'N/A'}</TableCell>
+                    <TableCell>{headers.total ?? 'N/A'}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </FormPaper>
     </Box>
   );
 };
-
 export default RegisterIncomeExpense;
