@@ -194,6 +194,29 @@ const RegisterIncomeExpense: React.FC = () => {
     }
   };
 
+  // Función para eliminar una factura
+  const deleteInvoice = async (invoiceId: number) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        }
+      );
+      if (response.ok) {
+        console.log(`Factura ${invoiceId} eliminada.`);
+        fetchInvoices(); // Refresca las facturas después de eliminar
+      } else {
+        console.error('Error al eliminar factura:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error al eliminar factura:', error);
+    }
+  };
+
   useEffect(() => {
     fetchInvoices(); // Llamar a la API al montar el componente
   }, []);
@@ -518,24 +541,39 @@ const RegisterIncomeExpense: React.FC = () => {
                 <TableCell>Condición</TableCell>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Total</TableCell>
+                <TableCell>Eliminar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {invoices.map((invoice: any, index) => {
-                const headers = invoice.headers || {}; // Asegúrate de que headers no sea undefined
-
-                return (
-                  <TableRow key={index}>
-                    <TableCell>{headers.document_number || 'N/A'}</TableCell>
-                    <TableCell>{headers.customer || 'N/A'}</TableCell>
-                    <TableCell>{headers.ruc || 'N/A'}</TableCell>
-                    <TableCell>{headers.transaction_type || 'N/A'}</TableCell>
-                    <TableCell>{headers.condition || 'N/A'}</TableCell>
-                    <TableCell>{headers.date || 'N/A'}</TableCell>
-                    <TableCell>{headers.total ?? 'N/A'}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {invoices.map((invoice: any, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    {invoice.invoice.headers.document_number || 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    {invoice.invoice.headers.customer || 'N/A'}
+                  </TableCell>
+                  <TableCell>{invoice.invoice.headers.ruc || 'N/A'}</TableCell>
+                  <TableCell>
+                    {invoice.invoice.headers.transaction_type || 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    {invoice.invoice.headers.condition || 'N/A'}
+                  </TableCell>
+                  <TableCell>{invoice.invoice.headers.date || 'N/A'}</TableCell>
+                  <TableCell>
+                    Gs. {invoice.invoice.headers.total || 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      onClick={() => deleteInvoice(invoice.invoice.headers.id)}
+                      style={{ color: 'red', cursor: 'pointer' }}
+                    >
+                      Eliminar
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
