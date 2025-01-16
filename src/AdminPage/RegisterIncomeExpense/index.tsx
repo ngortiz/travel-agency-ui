@@ -2,21 +2,7 @@ import React, { useState, useEffect } from 'react';
 import InvoiceTable from './InvoiceTable';
 import FormComponent from './FormComponent';
 import { Box } from '@mui/material';
-
-interface Invoice {
-  id: number;
-  invoice: {
-    headers: {
-      document_number: string;
-      customer: string;
-      ruc: string;
-      transaction_type: string;
-      condition: string;
-      date: string;
-      total: number;
-    };
-  };
-}
+import { Invoice } from '../../interfaces/invoice';
 
 const RegisterIncomeExpense: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -130,6 +116,7 @@ const RegisterIncomeExpense: React.FC = () => {
       });
       if (response.ok) {
         const data: Invoice[] = await response.json();
+
         setInvoices(data); // Actualiza el estado con el tipo adecuado
       } else {
         console.error('Error al obtener las facturas:', response.statusText);
@@ -163,7 +150,7 @@ const RegisterIncomeExpense: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchInvoices(); // Llamar a la API al montar el componente
+    fetchInvoices(); // Llamar a la API
   }, []);
 
   // Función para manejar envío del formulario
