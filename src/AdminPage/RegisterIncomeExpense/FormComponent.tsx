@@ -90,7 +90,7 @@ interface FormComponentProps {
 const FormComponent: React.FC<FormComponentProps> = ({
   formData,
   transactionDetails,
-  totals = { exempt: 0, tax5: 0, tax10: 0, total: 0 }, // Default value
+  totals = { exempt: 0, tax5: 0, tax10: 0, total: 0 },
   handleChange,
   addTransactionDetail,
   removeTransactionDetail,
@@ -229,13 +229,14 @@ const FormComponent: React.FC<FormComponentProps> = ({
                   <StyledTextField
                     name='unit_price'
                     label='Precio Unitario'
-                    type='number'
+                    type='text' // Cambiado de 'number' a 'text'
                     value={detail.unit_price}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
                   />
                 </Grid>
+
                 <Grid item xs={12} md={3}>
                   <StyledTextField
                     select
@@ -297,10 +298,28 @@ const FormComponent: React.FC<FormComponentProps> = ({
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>{totals.exempt.toFixed(2)}</TableCell>
-                  <TableCell>{totals.tax5.toFixed(2)}</TableCell>
-                  <TableCell>{totals.tax10.toFixed(2)}</TableCell>
-                  <TableCell>{totals.total.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.exempt.toFixed(2)
+                    )}`}
+                  </TableCell>
+
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.tax5.toFixed(2)
+                    )}`}
+                  </TableCell>
+
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.tax10.toFixed(2)
+                    )}`}
+                  </TableCell>
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.total.toFixed(2)
+                    )}`}
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
