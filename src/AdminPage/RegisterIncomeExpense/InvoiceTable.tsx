@@ -12,6 +12,7 @@ import {
   TextField,
   InputAdornment,
   Container,
+  Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
@@ -53,7 +54,7 @@ const StyledHeaderCell = styled(TableCell)`
 
 const SearchContainer = styled.div`
   && {
-    width: 100%;
+    width: 43%;
     max-width: 700px;
     margin-top: 55px;
     margin-left: 56%;
@@ -75,6 +76,13 @@ const SearchContainer = styled.div`
       padding: 12px 18px;
       color: #127ca8;
     }
+  }
+  @media (max-width: 900px) {
+    height: 400px;
+  }
+
+  @media (max-width: 700px) {
+    height: 300px;
   }
 `;
 
@@ -117,6 +125,37 @@ const MainContainer = styled(Container)`
   flex-direction: column;
   align-items: center;
   max-width: 1700px !important;
+`;
+
+// Botón "Ver más"
+const StyledButton = styled(IconButton)({
+  borderRadius: '50% !important',
+  fontSize: '15px !important',
+
+  background: 'linear-gradient(90deg, #2196f3, #4caf50)',
+  color: '#ffffff !important',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+  transition: 'background 0.3s ease, transform 0.2s ease',
+  marginLeft: '20px',
+  marginTop: '22px',
+  '&:hover': {
+    background: 'linear-gradient(90deg, #1e88e5, #43a047)',
+    transform: 'scale(1.1)',
+  },
+});
+
+// IconButton de Eliminar
+const StyledIconButton = styled(IconButton)`
+  background-color: #ffffff !important;
+
+  color: #e53935 !important; // Ícono rojo
+  border-radius: 50% !important; // Botón circular
+
+  &:hover {
+    background-color: #e53935 !important; // Fondo rojo al pasar el mouse
+    color: #ffffff !important; // Ícono blanco
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 // Interfaces
@@ -202,6 +241,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 <StyledHeaderCell>Condición</StyledHeaderCell>
                 <StyledHeaderCell>Fecha</StyledHeaderCell>
                 <StyledHeaderCell>Total</StyledHeaderCell>
+                <StyledHeaderCell>Vizualizar</StyledHeaderCell>
                 <StyledHeaderCell>Eliminar</StyledHeaderCell>
               </StyledHeaderRow>
             </TableHead>
@@ -233,12 +273,15 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   </StyledTableCell>
 
                   <StyledTableCell>
-                    <IconButton
+                    <StyledButton>Ver más</StyledButton>
+                  </StyledTableCell>
+                  <StyledTableCell>
+                    <StyledIconButton
                       color='error'
                       onClick={() => deleteInvoice(invoice.invoice.headers.id)}
                     >
                       <DeleteIcon />
-                    </IconButton>
+                    </StyledIconButton>
                   </StyledTableCell>
                 </StyledTableRow>
               ))}
