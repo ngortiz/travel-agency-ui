@@ -15,6 +15,8 @@ import {
   Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PreviewIcon from '@mui/icons-material/Preview';
+
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
 import { Invoice } from '../../interfaces/invoice';
@@ -127,24 +129,6 @@ const MainContainer = styled(Container)`
   max-width: 1700px !important;
 `;
 
-// Botón "Ver más"
-const StyledButton = styled(IconButton)({
-  borderRadius: '50% !important',
-  fontSize: '15px !important',
-
-  background: 'linear-gradient(90deg, #2196f3, #4caf50)',
-  color: '#ffffff !important',
-  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-  transition: 'background 0.3s ease, transform 0.2s ease',
-  marginLeft: '20px',
-  marginTop: '22px',
-  '&:hover': {
-    background: 'linear-gradient(90deg, #1e88e5, #43a047)',
-    transform: 'scale(1.1)',
-  },
-});
-
-// IconButton de Eliminar
 const StyledIconButton = styled(IconButton)`
   background-color: #ffffff !important;
 
@@ -158,14 +142,11 @@ const StyledIconButton = styled(IconButton)`
   }
 `;
 
-// Interfaces
-
 interface InvoiceTableProps {
   invoices: Invoice[];
   deleteInvoice: (invoiceId: number) => void;
 }
 
-// Componente Principal
 const InvoiceTable: React.FC<InvoiceTableProps> = ({
   invoices,
   deleteInvoice,
@@ -271,9 +252,17 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       invoice.invoice.headers.total
                     )}`}
                   </StyledTableCell>
-
                   <StyledTableCell>
-                    <StyledButton>Ver más</StyledButton>
+                    <IconButton
+                      color='primary'
+                      onClick={() =>
+                        console.log(
+                          `Visualizar factura ${invoice.invoice.headers.id}`
+                        )
+                      }
+                    >
+                      <PreviewIcon />
+                    </IconButton>
                   </StyledTableCell>
                   <StyledTableCell>
                     <StyledIconButton

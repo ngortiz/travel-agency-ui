@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -58,6 +58,17 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     color: '#1a76d2',
   },
 }));
+const StyledDateTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: '#f9f9f9',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    color: '#1a76d2 !important',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#1a76d2 !important',
+  },
+}));
 
 const StyledIconButton = styled(IconButton)(({ theme }) => ({
   borderRadius: '50%',
@@ -73,6 +84,17 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
     transform: 'scale(1.1)',
   },
 }));
+
+interface TransactionDetail {
+  quantity: number;
+  unit_price: number;
+  tax_type: string;
+  description?: string;
+}
+
+interface FieldErrors {
+  [key: string]: boolean;
+}
 
 interface FormComponentProps {
   formData: any;
@@ -96,15 +118,49 @@ const FormComponent: React.FC<FormComponentProps> = ({
   removeTransactionDetail,
   handleSubmit,
 }) => {
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const validateFields = () => {
+    const errors: FieldErrors = {};
+    if (!formData.customer) errors.customer = true;
+    if (!formData.transaction_type) errors.transaction_type = true;
+    if (!formData.document_type) errors.document_type = true;
+    if (!formData.document_number) errors.document_number = true;
+    if (!formData.date) errors.date = true;
+
+    transactionDetails.forEach((detail, index) => {
+      if (!detail.quantity) errors[`quantity_${index}`] = true;
+      if (!detail.unit_price) errors[`unit_price_${index}`] = true;
+      if (!detail.tax_type) errors[`tax_type_${index}`] = true;
+    });
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateFields()) {
+      handleSubmit(e);
+    } else {
+      alert('Por favor, complete todos los campos obligatorios.');
+    }
+  };
+
+  const getErrorStyle = (field: string) =>
+    fieldErrors[field]
+      ? { border: '2px solid red !important', borderRadius: '10px' }
+      : {};
+
   return (
     <FormPaper elevation={6}>
       <Typography variant='h4' align='center' color='primary' gutterBottom>
         Registrar Ingreso/Gasto
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        {/* Contenedor: Datos del Cliente */}
+      <form onSubmit={onSubmit}>
         <SectionPaper>
+          {/* Contenedor: Datos del Cliente */}
           <Typography variant='h6' gutterBottom color='textSecondary'>
             Datos del Cliente
           </Typography>
@@ -117,6 +173,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 onChange={handleChange}
                 fullWidth
                 required
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('customer')}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -126,6 +191,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 value={formData.ruc}
                 onChange={handleChange}
                 fullWidth
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('ruc')}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -136,6 +210,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 value={formData.email}
                 onChange={handleChange}
                 fullWidth
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('email')}
               />
             </Grid>
             <Grid item xs={12} md={4}>
@@ -147,6 +230,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 select
                 fullWidth
                 required
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('transaction_type')}
               >
                 <MenuItem value='ingreso'>Ingreso</MenuItem>
                 <MenuItem value='egreso'>Egreso</MenuItem>
@@ -161,6 +253,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 select
                 fullWidth
                 required
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('document_type')}
               >
                 <MenuItem value='factura'>Factura</MenuItem>
                 <MenuItem value='recibo'>Recibo</MenuItem>
@@ -174,6 +275,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 onChange={handleChange}
                 fullWidth
                 required
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('document_number')}
               />
             </Grid>
             <Grid item xs={12} md={3}>
@@ -185,21 +295,40 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 onChange={(e) => handleChange(e)}
                 fullWidth
                 required
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('condition')}
               >
                 <MenuItem value='contado'>Contado</MenuItem>
                 <MenuItem value='credito'>Credito</MenuItem>
               </StyledTextField>
             </Grid>
             <Grid item xs={12} md={4}>
-              <StyledTextField
+              <StyledDateTextField
                 name='date'
                 label='Fecha'
+                color='primary'
                 type='date'
                 value={formData.date}
                 onChange={handleChange}
                 fullWidth
                 required
                 InputLabelProps={{ shrink: true }}
+                onInvalid={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity(
+                    'Por favor, complete este campo.'
+                  )
+                }
+                onInput={(e) =>
+                  (e.target as HTMLInputElement).setCustomValidity('')
+                }
+                style={getErrorStyle('date')}
               />
             </Grid>
           </Grid>
@@ -223,6 +352,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
+                    onInvalid={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity(
+                        'Por favor, complete este campo.'
+                      )
+                    }
+                    onInput={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity('')
+                    }
+                    style={getErrorStyle('quantity')}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -234,6 +372,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
+                    onInvalid={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity(
+                        'Por favor, complete este campo.'
+                      )
+                    }
+                    onInput={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity('')
+                    }
+                    style={getErrorStyle('unit_price')}
                   />
                 </Grid>
 
@@ -246,6 +393,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
+                    onInvalid={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity(
+                        'Por favor, complete este campo.'
+                      )
+                    }
+                    onInput={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity('')
+                    }
+                    style={getErrorStyle('tax_type')}
                   >
                     <MenuItem value='IVA 10%'>IVA 10%</MenuItem>
                     <MenuItem value='IVA 5%'>IVA 5%</MenuItem>
@@ -271,6 +427,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     fullWidth
                     multiline
                     rows={3}
+                    onInvalid={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity(
+                        'Por favor, complete este campo.'
+                      )
+                    }
+                    onInput={(e) =>
+                      (e.target as HTMLInputElement).setCustomValidity('')
+                    }
+                    style={getErrorStyle('description')}
                   />
                 </Grid>
               </Grid>
