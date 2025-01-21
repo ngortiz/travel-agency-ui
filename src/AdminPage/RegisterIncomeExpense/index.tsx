@@ -3,6 +3,7 @@ import InvoiceTable from './InvoiceTable';
 import FormComponent from './FormComponent';
 import { Box, Snackbar, Alert } from '@mui/material';
 import { Invoice } from '../../interfaces/invoice';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 
 // Utilidades para formatear números
 const formatNumber = (value: number): string =>
@@ -187,6 +188,27 @@ const RegisterIncomeExpense: React.FC = () => {
       });
     }
   };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [invoiceIdToDelete, setInvoiceIdToDelete] = useState<number | null>(
+    null
+  ); // Mantener el ID de la factura a eliminar
+
+  const handleOpenModal = (invoiceId: number) => {
+    setInvoiceIdToDelete(invoiceId); // Guardamos el ID de la factura a eliminar
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setInvoiceIdToDelete(null); // Resetear el ID al cerrar el modal
+  };
+
+  const handleConfirmDelete = () => {
+    if (invoiceIdToDelete !== null) {
+      deleteInvoice(invoiceIdToDelete);
+    }
+    setIsModalOpen(false); // Cerrar el modal después de confirmar
+  };
 
   const deleteInvoice = async (invoiceId: number) => {
     try {
@@ -341,7 +363,16 @@ const RegisterIncomeExpense: React.FC = () => {
         removeTransactionDetail={removeTransactionDetail}
         handleSubmit={handleSubmit}
       />
-      <InvoiceTable invoices={invoices} deleteInvoice={deleteInvoice} />
+      <InvoiceTable
+        invoices={invoices}
+        deleteInvoice={handleOpenModal} // Pasamos la función de abrir el modal con el ID de la factura
+      />
+
+      <ConfirmDeleteModal
+        open={isModalOpen} // Estado que controla la visibilidad
+        onClose={handleCloseModal} // Función para cerrar el modal
+        onConfirm={handleConfirmDelete} // Función para confirmar la eliminación
+      />
     </Box>
   );
 };

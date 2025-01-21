@@ -12,8 +12,11 @@ import {
   TextField,
   InputAdornment,
   Container,
+  Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PreviewIcon from '@mui/icons-material/Preview';
+
 import SearchIcon from '@mui/icons-material/Search';
 import styled from 'styled-components';
 import { Invoice } from '../../interfaces/invoice';
@@ -53,7 +56,7 @@ const StyledHeaderCell = styled(TableCell)`
 
 const SearchContainer = styled.div`
   && {
-    width: 100%;
+    width: 43%;
     max-width: 700px;
     margin-top: 55px;
     margin-left: 56%;
@@ -75,6 +78,13 @@ const SearchContainer = styled.div`
       padding: 12px 18px;
       color: #127ca8;
     }
+  }
+  @media (max-width: 900px) {
+    height: 400px;
+  }
+
+  @media (max-width: 700px) {
+    height: 300px;
   }
 `;
 
@@ -119,14 +129,24 @@ const MainContainer = styled(Container)`
   max-width: 1700px !important;
 `;
 
-// Interfaces
+const StyledIconButton = styled(IconButton)`
+  background-color: #ffffff !important;
+
+  color: #e53935 !important; // Ícono rojo
+  border-radius: 50% !important; // Botón circular
+
+  &:hover {
+    background-color: #e53935 !important; // Fondo rojo al pasar el mouse
+    color: #ffffff !important; // Ícono blanco
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+`;
 
 interface InvoiceTableProps {
   invoices: Invoice[];
   deleteInvoice: (invoiceId: number) => void;
 }
 
-// Componente Principal
 const InvoiceTable: React.FC<InvoiceTableProps> = ({
   invoices,
   deleteInvoice,
@@ -202,6 +222,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                 <StyledHeaderCell>Condición</StyledHeaderCell>
                 <StyledHeaderCell>Fecha</StyledHeaderCell>
                 <StyledHeaderCell>Total</StyledHeaderCell>
+                <StyledHeaderCell>Vizualizar</StyledHeaderCell>
                 <StyledHeaderCell>Eliminar</StyledHeaderCell>
               </StyledHeaderRow>
             </TableHead>
@@ -231,14 +252,25 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                       invoice.invoice.headers.total
                     )}`}
                   </StyledTableCell>
-
                   <StyledTableCell>
                     <IconButton
+                      color='primary'
+                      onClick={() =>
+                        console.log(
+                          `Visualizar factura ${invoice.invoice.headers.id}`
+                        )
+                      }
+                    >
+                      <PreviewIcon />
+                    </IconButton>
+                  </StyledTableCell>
+                  <StyledTableCell>
+                    <StyledIconButton
                       color='error'
                       onClick={() => deleteInvoice(invoice.invoice.headers.id)}
                     >
                       <DeleteIcon />
-                    </IconButton>
+                    </StyledIconButton>
                   </StyledTableCell>
                 </StyledTableRow>
               ))}
