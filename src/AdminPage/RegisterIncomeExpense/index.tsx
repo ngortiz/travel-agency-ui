@@ -6,18 +6,10 @@ import { Invoice } from '../../interfaces/invoice';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { TransactionDetail } from '../../interfaces/transactionDetail';
 
-// Utilidades para formatear números
-
-// Formatear el número con separadores de miles
-const formatNumber = (value: string): string => {
-  const numericValue = value.replace(/[^\d]/g, ''); // Eliminar caracteres no numéricos
-  return new Intl.NumberFormat('es-PY').format(Number(numericValue));
-};
-
 // Desformatear el número a un formato limpio para cálculos
-const unformatNumber = (formattedValue: string): number => {
-  const numericValue = formattedValue.replace(/\./g, '').replace(/,/g, '.'); // Eliminar separadores
-  return parseFloat(numericValue) || 0;
+const unformatNumber = (value: string): number => {
+  const numericValue = value.replace(/[^\d.]/g, '');
+  return parseFloat(numericValue);
 };
 
 const RegisterIncomeExpense: React.FC = () => {
@@ -104,16 +96,16 @@ const RegisterIncomeExpense: React.FC = () => {
     const newTotals = { exempt: 0, tax5: 0, tax10: 0, total: 0 };
 
     transactionDetails.forEach((detail) => {
-      const quantity = unformatNumber(detail.quantity.toString());
-      const unitPrice = unformatNumber(detail.unit_price.toString());
+      const quantity = detail.quantity || 0;
+      const unitPrice = detail.unit_price || 0;
       const subtotal = quantity * unitPrice;
 
-      if (detail.tax_type === 'iva10') {
-        newTotals.tax10 += subtotal / 11; // 10% de IVA incluido
+      if (detail.tax_type === 'exenta') {
+        newTotals.exempt += subtotal;
       } else if (detail.tax_type === 'iva5') {
-        newTotals.tax5 += subtotal / 21; // 5% de IVA incluido
-      } else if (detail.tax_type === 'exenta') {
-        newTotals.exempt += subtotal; // Exento
+        newTotals.tax5 += (subtotal / 1.05) * 0.05;
+      } else if (detail.tax_type === 'iva10') {
+        newTotals.tax10 += (subtotal / 1.1) * 0.1;
       }
 
       newTotals.total += subtotal;
@@ -136,23 +128,19 @@ const RegisterIncomeExpense: React.FC = () => {
     index?: number
   ) => {
     const { name, value } = e.target;
+    const normalizedValue =
+      name === 'quantity' || name === 'unit_price'
+        ? parseFloat(value.replace(/\./g, '').replace(/,/g, '')) || 0
+        : value;
 
-    if (index !== undefined) {
-      const updatedDetails = [...transactionDetails];
-      updatedDetails[index] = {
+    if (typeof index === 'number') {
+      transactionDetails[index] = {
         ...transactionDetails[index],
-        [name]:
-          name === 'quantity' || name === 'unit_price'
-            ? formatNumber(value) // Aplicar formateo al cambiar
-            : value,
+        [name]: normalizedValue,
       };
-
-      setTransactionDetails(updatedDetails);
+      setTransactionDetails([...transactionDetails]);
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      setFormData({ ...formData, [name]: value });
     }
 
     if (errors[name as keyof typeof errors]) {
@@ -216,14 +204,15 @@ const RegisterIncomeExpense: React.FC = () => {
         setFormData(invoice.invoice.headers);
 
         const details = invoice.invoice.details.map((detail) => ({
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
+          quantity: Number(detail.quantity), // Convertir a número
+          unit_price: Number(detail.unit_price), // Convertir a número
           tax_type: detail.tax_type,
           description: detail.description,
         }));
 
         setTransactionDetails(details);
         calculateTotals(); // Recalcular totales al visualizar
+
         setIsDisplayMode(true);
       } else {
         throw new Error('Error al obtener los detalles de la factura.');

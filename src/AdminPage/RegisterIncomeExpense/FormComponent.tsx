@@ -115,6 +115,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
   isDisplayMode,
 }) => {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const normalizeNumber = (value: any) =>
+    typeof value === 'string' ? parseFloat(value.replace(/\./g, '')) : value;
 
   const validateFields = () => {
     const errors: FieldErrors = {};
@@ -354,8 +356,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     disabled={isDisplayMode}
                     name='quantity'
                     label='Cantidad'
-                    type='number'
-                    value={detail.quantity}
+                    type='text'
+                    value={Number(detail.quantity).toLocaleString('es-PY')}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
@@ -375,7 +377,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     disabled={isDisplayMode}
                     type='text' // Cambiar a texto para evitar restricciones de longitud
                     name='unit_price'
-                    value={transactionDetails[index].unit_price}
+                    value={detail.unit_price.toLocaleString('es-PY')}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
@@ -473,24 +475,26 @@ const FormComponent: React.FC<FormComponentProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell>
-                    {totals.exempt.toLocaleString('es-PY', {
-                      minimumFractionDigits: 2,
-                    })}
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.exempt.toFixed(2)
+                    )}`}
+                  </TableCell>
+
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.tax5.toFixed(2)
+                    )}`}
+                  </TableCell>
+
+                  <TableCell>
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.tax10.toFixed(2)
+                    )}`}
                   </TableCell>
                   <TableCell>
-                    {totals.tax5.toLocaleString('es-PY', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {totals.tax10.toLocaleString('es-PY', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {totals.total.toLocaleString('es-PY', {
-                      minimumFractionDigits: 2,
-                    })}
+                    {` ${new Intl.NumberFormat('es-PY').format(
+                      totals.total.toFixed(2)
+                    )}`}
                   </TableCell>
                 </TableRow>
               </TableBody>
