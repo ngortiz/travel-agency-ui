@@ -12,7 +12,6 @@ import {
   TextField,
   InputAdornment,
   Container,
-  Button,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PreviewIcon from '@mui/icons-material/Preview';
@@ -145,11 +144,13 @@ const StyledIconButton = styled(IconButton)`
 interface InvoiceTableProps {
   invoices: Invoice[];
   deleteInvoice: (invoiceId: number) => void;
+  onViewInvoice: (invoiceId: number) => void;
 }
 
 const InvoiceTable: React.FC<InvoiceTableProps> = ({
   invoices,
   deleteInvoice,
+  onViewInvoice,
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -255,11 +256,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   <StyledTableCell>
                     <IconButton
                       color='primary'
-                      onClick={() =>
-                        console.log(
-                          `Visualizar factura ${invoice.invoice.headers.id}`
-                        )
-                      }
+                      onClick={() => onViewInvoice(invoice.invoice.headers.id)}
                     >
                       <PreviewIcon />
                     </IconButton>

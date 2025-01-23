@@ -4,19 +4,21 @@ import FormComponent from './FormComponent';
 import { Box, Snackbar, Alert } from '@mui/material';
 import { Invoice } from '../../interfaces/invoice';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
+import { TransactionDetail } from '../../interfaces/transactionDetail';
 
 // Utilidades para formatear números
-const formatNumber = (value: number): string =>
-  value.toLocaleString('es-ES', { minimumFractionDigits: 0 });
-const unformatNumber = (value: string): number =>
-  parseFloat(value.replace(/\./g, '')) || 0;
 
-interface TransactionDetail {
-  quantity: string;
-  unit_price: string;
-  tax_type: string;
-  description: string;
-}
+// Formatear el número con separadores de miles
+const formatNumber = (value: string): string => {
+  const numericValue = value.replace(/[^\d]/g, ''); // Eliminar caracteres no numéricos
+  return new Intl.NumberFormat('es-PY').format(Number(numericValue));
+};
+
+// Desformatear el número a un formato limpio para cálculos
+const unformatNumber = (formattedValue: string): number => {
+  const numericValue = formattedValue.replace(/\./g, '').replace(/,/g, '.'); // Eliminar separadores
+  return parseFloat(numericValue) || 0;
+};
 
 const RegisterIncomeExpense: React.FC = () => {
   const [notification, setNotification] = useState<{
@@ -53,7 +55,7 @@ const RegisterIncomeExpense: React.FC = () => {
 
   const [transactionDetails, setTransactionDetails] = useState<
     TransactionDetail[]
-  >([{ quantity: '', unit_price: '', tax_type: '', description: '' }]);
+  >([{ quantity: 0, unit_price: 0, tax_type: '', description: '' }]);
 
   const [totals, setTotals] = useState({
     exempt: 0,
@@ -63,6 +65,12 @@ const RegisterIncomeExpense: React.FC = () => {
   });
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isDisplayMode, setIsDisplayMode] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [invoiceIdToDelete, setInvoiceIdToDelete] = useState<number | null>(
+    null
+  );
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -92,33 +100,36 @@ const RegisterIncomeExpense: React.FC = () => {
     setErrors(newErrors);
     return isValid;
   };
+  const calculateTotals = () => {
+    const newTotals = { exempt: 0, tax5: 0, tax10: 0, total: 0 };
 
-  const calculateTotals = (details: TransactionDetail[]) => {
-    let exempt = 0;
-    let tax5 = 0;
-    let tax10 = 0;
-
-    details.forEach((detail) => {
-      const quantity = unformatNumber(detail.quantity);
-      const unitPrice = unformatNumber(detail.unit_price);
+    transactionDetails.forEach((detail) => {
+      const quantity = unformatNumber(detail.quantity.toString());
+      const unitPrice = unformatNumber(detail.unit_price.toString());
       const subtotal = quantity * unitPrice;
 
-      if (detail.tax_type === 'Exento') {
-        exempt += subtotal;
-      } else if (detail.tax_type === 'IVA 5%') {
-        tax5 += subtotal / 21;
-      } else if (detail.tax_type === 'IVA 10%') {
-        tax10 += subtotal / 11;
+      if (detail.tax_type === 'iva10') {
+        newTotals.tax10 += subtotal / 11; // 10% de IVA incluido
+      } else if (detail.tax_type === 'iva5') {
+        newTotals.tax5 += subtotal / 21; // 5% de IVA incluido
+      } else if (detail.tax_type === 'exenta') {
+        newTotals.exempt += subtotal; // Exento
       }
+
+      newTotals.total += subtotal;
     });
 
     setTotals({
-      exempt,
-      tax5: Math.round(tax5),
-      tax10: Math.round(tax10),
-      total: exempt + tax5 * 21 + tax10 * 11,
+      exempt: Math.round(newTotals.exempt),
+      tax5: Math.round(newTotals.tax5),
+      tax10: Math.round(newTotals.tax10),
+      total: Math.round(newTotals.total),
     });
   };
+
+  useEffect(() => {
+    calculateTotals();
+  }, [transactionDetails]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -128,16 +139,15 @@ const RegisterIncomeExpense: React.FC = () => {
 
     if (index !== undefined) {
       const updatedDetails = [...transactionDetails];
-      if (name === 'quantity' || name === 'unit_price') {
-        updatedDetails[index][name as keyof TransactionDetail] = formatNumber(
-          unformatNumber(value.replace(/\D/g, ''))
-        );
-      } else {
-        updatedDetails[index][name as keyof TransactionDetail] = value;
-      }
+      updatedDetails[index] = {
+        ...transactionDetails[index],
+        [name]:
+          name === 'quantity' || name === 'unit_price'
+            ? formatNumber(value) // Aplicar formateo al cambiar
+            : value,
+      };
 
       setTransactionDetails(updatedDetails);
-      calculateTotals(updatedDetails);
     } else {
       setFormData({
         ...formData,
@@ -153,14 +163,14 @@ const RegisterIncomeExpense: React.FC = () => {
   const addTransactionDetail = () => {
     setTransactionDetails([
       ...transactionDetails,
-      { quantity: '', unit_price: '', tax_type: '', description: '' },
+      { quantity: 0, unit_price: 0, tax_type: '', description: '' },
     ]);
   };
 
   const removeTransactionDetail = (index: number) => {
     const updatedDetails = transactionDetails.filter((_, i) => i !== index);
     setTransactionDetails(updatedDetails);
-    calculateTotals(updatedDetails);
+    calculateTotals();
   };
 
   const fetchInvoices = async () => {
@@ -188,10 +198,44 @@ const RegisterIncomeExpense: React.FC = () => {
       });
     }
   };
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [invoiceIdToDelete, setInvoiceIdToDelete] = useState<number | null>(
-    null
-  ); // Mantener el ID de la factura a eliminar
+  const handleViewInvoice = async (invoiceId: number) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const invoice: Invoice = await response.json();
+
+        setSelectedInvoice(invoice);
+        setFormData(invoice.invoice.headers);
+
+        const details = invoice.invoice.details.map((detail) => ({
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          tax_type: detail.tax_type,
+          description: detail.description,
+        }));
+
+        setTransactionDetails(details);
+        calculateTotals(); // Recalcular totales al visualizar
+        setIsDisplayMode(true);
+      } else {
+        throw new Error('Error al obtener los detalles de la factura.');
+      }
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: 'Error al obtener los detalles de la factura.',
+        type: 'error',
+      });
+    }
+  };
 
   const handleOpenModal = (invoiceId: number) => {
     setInvoiceIdToDelete(invoiceId); // Guardamos el ID de la factura a eliminar
@@ -261,15 +305,10 @@ const RegisterIncomeExpense: React.FC = () => {
       invoice: {
         headers: formData,
         details: transactionDetails.map((detail) => ({
-          quantity: unformatNumber(detail.quantity),
-          unit_price: unformatNumber(detail.unit_price),
+          quantity: unformatNumber(detail.quantity.toString()),
+          unit_price: unformatNumber(detail.unit_price.toString()),
           description: detail.description,
-          tax_type:
-            detail.tax_type === 'IVA 10%'
-              ? 'iva10'
-              : detail.tax_type === 'IVA 5%'
-              ? 'iva5'
-              : 'exento',
+          tax_type: detail.tax_type,
         })),
       },
     };
@@ -301,7 +340,7 @@ const RegisterIncomeExpense: React.FC = () => {
           date: '',
         });
         setTransactionDetails([
-          { quantity: '', unit_price: '', tax_type: '', description: '' },
+          { quantity: 0, unit_price: 0, tax_type: '', description: '' },
         ]);
         setTotals({ exempt: 0, tax5: 0, tax10: 0, total: 0 });
         fetchInvoices();
@@ -362,10 +401,12 @@ const RegisterIncomeExpense: React.FC = () => {
         addTransactionDetail={addTransactionDetail}
         removeTransactionDetail={removeTransactionDetail}
         handleSubmit={handleSubmit}
+        isDisplayMode={isDisplayMode}
       />
       <InvoiceTable
         invoices={invoices}
         deleteInvoice={handleOpenModal} // Pasamos la función de abrir el modal con el ID de la factura
+        onViewInvoice={handleViewInvoice}
       />
 
       <ConfirmDeleteModal

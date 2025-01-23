@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { TransactionDetail } from '../../interfaces/transactionDetail';
 
 // Estilos personalizados
 const FormPaper = styled(Paper)(({ theme }) => ({
@@ -85,20 +86,13 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-interface TransactionDetail {
-  quantity: number;
-  unit_price: number;
-  tax_type: string;
-  description?: string;
-}
-
 interface FieldErrors {
   [key: string]: boolean;
 }
 
 interface FormComponentProps {
   formData: any;
-  transactionDetails: any[];
+  transactionDetails: TransactionDetail[];
   totals: any;
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -107,6 +101,7 @@ interface FormComponentProps {
   addTransactionDetail: () => void;
   removeTransactionDetail: (index: number) => void;
   handleSubmit: (e: React.FormEvent) => void;
+  isDisplayMode: boolean;
 }
 
 const FormComponent: React.FC<FormComponentProps> = ({
@@ -117,6 +112,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
   addTransactionDetail,
   removeTransactionDetail,
   handleSubmit,
+  isDisplayMode,
 }) => {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -129,9 +125,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
     if (!formData.date) errors.date = true;
 
     transactionDetails.forEach((detail, index) => {
-      if (!detail.quantity) errors[`quantity_${index}`] = true;
-      if (!detail.unit_price) errors[`unit_price_${index}`] = true;
-      if (!detail.tax_type) errors[`tax_type_${index}`] = true;
+      if (!detail.quantity || detail.quantity <= 0)
+        errors[`quantity_${index}`] = true;
+      if (!detail.unit_price || detail.unit_price <= 0)
+        errors[`unit_price_${index}`] = true;
+      if (!detail.tax_type) errors[`tax_type${index}`] = true;
     });
 
     setFieldErrors(errors);
@@ -167,6 +165,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
           <Grid container spacing={3}>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='customer'
                 label='Cliente'
                 value={formData.customer}
@@ -186,6 +185,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='ruc'
                 label='RUC'
                 value={formData.ruc}
@@ -204,6 +204,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='email'
                 label='Email'
                 type='email'
@@ -223,6 +224,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='transaction_type'
                 label='Tipo'
                 value={formData.transaction_type}
@@ -246,6 +248,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='document_type'
                 label='Tipo de Documento'
                 value={formData.document_type}
@@ -269,6 +272,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledTextField
+                disabled={isDisplayMode}
                 name='document_number'
                 label='Nro de Documento'
                 value={formData.document_number}
@@ -289,6 +293,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             <Grid item xs={12} md={3}>
               <StyledTextField
                 select
+                disabled={isDisplayMode}
                 name='condition'
                 label='Condicion de Venta'
                 value={formData.condition}
@@ -311,6 +316,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             </Grid>
             <Grid item xs={12} md={4}>
               <StyledDateTextField
+                disabled={isDisplayMode}
                 name='date'
                 label='Fecha'
                 color='primary'
@@ -345,6 +351,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
               <Grid container spacing={3} alignItems='center'>
                 <Grid item xs={12} md={3}>
                   <StyledTextField
+                    disabled={isDisplayMode}
                     name='quantity'
                     label='Cantidad'
                     type='number'
@@ -365,10 +372,10 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 </Grid>
                 <Grid item xs={12} md={3}>
                   <StyledTextField
+                    disabled={isDisplayMode}
+                    type='text' // Cambiar a texto para evitar restricciones de longitud
                     name='unit_price'
-                    label='Precio Unitario'
-                    type='text' // Cambiado de 'number' a 'text'
-                    value={detail.unit_price}
+                    value={transactionDetails[index].unit_price}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
                     required
@@ -387,6 +394,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 <Grid item xs={12} md={3}>
                   <StyledTextField
                     select
+                    disabled={isDisplayMode}
                     name='tax_type'
                     label='Tipo de Impuesto'
                     value={detail.tax_type}
@@ -403,9 +411,9 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     }
                     style={getErrorStyle('tax_type')}
                   >
-                    <MenuItem value='IVA 10%'>IVA 10%</MenuItem>
-                    <MenuItem value='IVA 5%'>IVA 5%</MenuItem>
-                    <MenuItem value='Exento'>Exento</MenuItem>
+                    <MenuItem value='iva10'>IVA 10%</MenuItem>
+                    <MenuItem value='iva5'>IVA 5%</MenuItem>
+                    <MenuItem value='exenta'>Exento</MenuItem>
                   </StyledTextField>
                 </Grid>
                 {/* IconButton con DeleteIcon */}
@@ -420,6 +428,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
               <Grid container spacing={3} mt={2}>
                 <Grid item xs={12}>
                   <StyledTextField
+                    disabled={isDisplayMode}
                     name='description'
                     label='Descripción'
                     value={detail.description}
@@ -464,26 +473,24 @@ const FormComponent: React.FC<FormComponentProps> = ({
               <TableBody>
                 <TableRow>
                   <TableCell>
-                    {` ${new Intl.NumberFormat('es-PY').format(
-                      totals.exempt.toFixed(2)
-                    )}`}
-                  </TableCell>
-
-                  <TableCell>
-                    {` ${new Intl.NumberFormat('es-PY').format(
-                      totals.tax5.toFixed(2)
-                    )}`}
-                  </TableCell>
-
-                  <TableCell>
-                    {` ${new Intl.NumberFormat('es-PY').format(
-                      totals.tax10.toFixed(2)
-                    )}`}
+                    {totals.exempt.toLocaleString('es-PY', {
+                      minimumFractionDigits: 2,
+                    })}
                   </TableCell>
                   <TableCell>
-                    {` ${new Intl.NumberFormat('es-PY').format(
-                      totals.total.toFixed(2)
-                    )}`}
+                    {totals.tax5.toLocaleString('es-PY', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {totals.tax10.toLocaleString('es-PY', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell>
+                    {totals.total.toLocaleString('es-PY', {
+                      minimumFractionDigits: 2,
+                    })}
                   </TableCell>
                 </TableRow>
               </TableBody>
