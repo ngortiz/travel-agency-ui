@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -19,21 +20,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      const tokenExpiration = localStorage.getItem('tokenExpiration');
+      if (tokenExpiration && new Date().getTime() > +tokenExpiration) {
+        // Expiró el token
+        localStorage.removeItem('authToken');
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+  }, []);
+
   const login = (token: string) => {
+    const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 horas
     localStorage.setItem('authToken', token);
+    localStorage.setItem('tokenExpiration', expirationTime.toString());
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('tokenExpiration');
     setIsAuthenticated(false);
   };
-
-  useEffect(() => {
-    if (localStorage.getItem('authToken')) {
-      setIsAuthenticated(true);
-    }
-  }, []);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, login, logout }}>

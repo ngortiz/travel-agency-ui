@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FiPackage, FiImage, FiMenu, FiX, FiHome } from 'react-icons/fi';
+import {
+  FiPackage,
+  FiImage,
+  FiMenu,
+  FiX,
+  FiHome,
+  FiRepeat,
+} from 'react-icons/fi';
+import { Sort } from '@mui/icons-material';
 
 const DashboardContainer = styled.div`
   display: flex;
@@ -143,8 +151,14 @@ const AdminDashboard: React.FC = () => {
           </MenuItem>
           <MenuItem>
             <StyledLink to='/admin/register-income-expense'>
-              <FiPackage size={20} />
+              <Sort />
               Registrar Ingreso/Gasto
+            </StyledLink>
+          </MenuItem>
+          <MenuItem>
+            <StyledLink to='/admin/reports'>
+              <FiRepeat size={20} />
+              Reportes
             </StyledLink>
           </MenuItem>
         </MenuList>
