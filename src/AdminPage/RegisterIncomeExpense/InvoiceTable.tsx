@@ -135,7 +135,7 @@ const StyledIconButton = styled(IconButton)`
   border-radius: 50% !important; // Botón circular
 
   &:hover {
-    background-color: #e53935 !important; // Fondo rojo al pasar el mouse
+    background-color: #e53935 !important;
     color: #ffffff !important; // Ícono blanco
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
