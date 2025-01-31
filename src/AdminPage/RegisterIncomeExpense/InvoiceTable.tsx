@@ -103,11 +103,11 @@ const StyledPagination = styled(TablePagination)`
   }
 `;
 const StyledHeaderTypography = styled(Typography)`
-  color: #127ca8;
-  font-weight: 600;
+  color: #127ca8 !important;
+  font-weight: bold;
   font-size: 2rem;
-  margin-bottom: 10px !important;
-  margin-top: 88px !important;
+  margin-bottom: 2px !important;
+  margin-top: 20px !important;
   text-align: center;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
   transition: color 0.3s ease;
