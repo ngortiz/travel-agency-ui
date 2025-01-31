@@ -1,19 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Box, IconButton } from '@mui/material';
-import PrintIcon from '@mui/icons-material/Print'; // Importación corregida
+import InvoiceTable from './RegisterIncomeExpense/InvoiceTable';
+import { Invoice } from '../interfaces/invoice';
+import { useNavigate } from 'react-router-dom';
 
-const ReportContainer = styled.div`const ReportContainer = styled.div
-padding: 3rem 2rem;
-background: #ffffff;
-border-radius: 10px;
-box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-max-width: 1200px;
-margin: 0 auto;
-margin-top: 6.5rem;
-padding: 57px;
+const ReportContainer = styled.div`
+  padding: 3rem 2rem;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  max-width: 1400px;
+  margin: 0 auto;
+  margin-top: 6.5rem;
+`;
 
-;`;
+const TableContainer = styled.div`
+  margin-top: 2rem;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+`;
 
 const Title = styled.h1`
   font-size: 2.2rem;
@@ -46,16 +52,16 @@ const Select = styled.select`
 const Input = styled.input`
   padding: 0.7rem 4rem;
   font-size: 1rem;
-  border: 1px solid #1a76d2 ;
+  border: 1px solid #1a76d2;
   border-radius: 8px;
   background-color: #f9f9f9;
-  color:'#1a76d2 '
   &:focus {
     outline: none;
     border-color: #127ca8;
     box-shadow: 0 0 5px rgba(18, 124, 168, 0.5);
   }
 `;
+
 const Button = styled.button`
   border-radius: 8px;
   border: none;
@@ -69,29 +75,6 @@ const Button = styled.button`
   width: 10%;
   &:hover {
     background: linear-gradient(90deg, #1e88e5, #43a047);
-  }
-`;
-
-const TableContainer = styled.div`
-  margin-top: 2rem;
-  overflow-x: auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TableHead = styled.thead`
-  background-color: #127ca8;
-  color: white;
-
-  th {
-    padding: 0.8rem;
-
-    font-size: 1rem;
   }
 `;
 
@@ -115,84 +98,84 @@ const TableBody = styled.tbody`
   }
 `;
 
-const StyledIconButton = styled(IconButton)({
-  borderRadius: '50%',
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
 
-  background: 'linear-gradient(90deg, #2196f3, #4caf50)',
-  color: '#ffffff !important',
-  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-  transition: 'background 0.3s ease, transform 0.2s ease',
-  marginLeft: '20px',
-  marginTop: '22px',
-  '&:hover': {
-    background: 'linear-gradient(90deg, #1e88e5, #43a047)',
-    transform: 'scale(1.1)',
-  },
-});
-
-const Report: React.FC = () => {
+const Reports: React.FC<{ onViewInvoice: (invoiceId: number) => void }> = ({
+  onViewInvoice,
+}) => {
   const [type, setType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [generatedReport, setGeneratedReport] = useState<any | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [generatedReport, setGeneratedReport] = useState<Invoice[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      if (response.ok) {
+        const data: Invoice[] = await response.json();
+        setInvoices(data);
+        setGeneratedReport(data);
+      } else {
+        console.error('Error al obtener las facturas.');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  };
+
+  const navigate = useNavigate();
+
+  const handleViewInvoice = (invoiceId: number) => {
+    console.log(`Visualizar factura con ID: ${invoiceId}`);
+    navigate(`/admin/register-income-expense/${invoiceId}`); // redirige al detalle de la factura
+  };
+
+  // Filtrar facturas según el tipo seleccionado
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const fakeData = {
-      type,
-      startDate,
-      endDate,
-      entries: [
-        {
-          id: 1,
-          date: '2025-01-10',
-          amount: 150,
-          type: 'Ingreso',
-          customerName: 'Juan Pérez',
-          ruc: '1234567890',
-          invoiceNumber: 'FAC-001',
-          paymentCondition: 'Contado',
-          voucherType: 'Factura',
-          status: 'Aceptado',
-        },
-        {
-          id: 2,
-          date: '2025-01-12',
-          amount: -50,
-          type: 'Egreso',
-          customerName: 'María Gómez',
-          ruc: '0987654321',
-          invoiceNumber: 'FAC-002',
-          paymentCondition: 'Crédito',
-          voucherType: 'Recibo',
-          status: 'Anulado',
-        },
-        {
-          id: 3,
-          date: '2025-01-15',
-          amount: 300,
-          type: 'Ingreso',
-          customerName: 'Carlos Sánchez',
-          ruc: '1122334455',
-          invoiceNumber: 'FAC-003',
-          paymentCondition: 'Contado',
-          voucherType: 'Factura',
-          status: 'Aceptado',
-        },
-      ].filter((entry) => type === 'Todo' || entry.type === type),
-    };
-    setGeneratedReport(fakeData);
+    const filteredData = invoices.filter(
+      (invoice) =>
+        type === 'Todo' || invoice.invoice.headers.transaction_type === type
+    );
+
+    setGeneratedReport(filteredData);
+  };
+
+  const deleteInvoice = (invoiceId: number) => {
+    setGeneratedReport((prev) =>
+      prev.filter((invoice) => invoice.invoice.headers.id !== invoiceId)
+    );
   };
 
   const totalIngresos =
-    generatedReport?.entries
-      .filter((e: any) => e.amount > 0)
-      .reduce((acc: number, e: any) => acc + e.amount, 0) || 0;
+    generatedReport
+      .filter(
+        (invoice) => invoice.invoice.headers.transaction_type === 'Ingreso'
+      )
+      .reduce((acc, invoice) => acc + invoice.invoice.headers.total, 0) || 0;
+
   const totalGastos =
-    generatedReport?.entries
-      .filter((e: any) => e.amount < 0)
-      .reduce((acc: number, e: any) => acc + Math.abs(e.amount), 0) || 0;
+    generatedReport
+      .filter(
+        (invoice) => invoice.invoice.headers.transaction_type === 'Egreso'
+      )
+      .reduce((acc, invoice) => acc + invoice.invoice.headers.total, 0) || 0;
+
   const diferencia = totalIngresos - totalGastos;
 
   return (
@@ -222,68 +205,32 @@ const Report: React.FC = () => {
         <Button type='submit'>Generar</Button>
       </Form>
 
-      {/* Mostrar el reporte generado */}
-      {generatedReport && (
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Cliente</th>
-                <th>RUC</th>
-                <th>Nro. Factura</th>
-                <th>Condición de Venta</th>
-                <th>Tipo Comprobante</th>
-                <th>Estado</th>
-                <th>Importe</th>
-              </tr>
-            </TableHead>
+      <InvoiceTable
+        invoices={generatedReport}
+        deleteInvoice={deleteInvoice}
+        onViewInvoice={handleViewInvoice}
+      />
 
-            <TableBody>
-              {generatedReport.entries.map((entry: any) => (
-                <tr key={entry.id}>
-                  <td>{entry.date}</td>
-                  <td>{entry.type}</td>
-                  <td>{entry.customerName}</td>
-                  <td>{entry.ruc}</td>
-                  <td>{entry.invoiceNumber}</td>
-                  <td>{entry.paymentCondition}</td>
-                  <td>{entry.voucherType}</td>
-                  <td>{entry.status}</td>
-                  <td
-                    className={`amount ${
-                      entry.amount > 0 ? 'positive' : 'negative'
-                    }`}
-                  >
-                    ${entry.amount}
-                  </td>
-                </tr>
-              ))}
-            </TableBody>
-          </Table>
-          <TableContainer>
-            <Table>
-              <TableBody>
-                <tr>
-                  <td>Total Ingresos:</td>
-                  <td>${totalIngresos}</td>
-                </tr>
-                <tr>
-                  <td>Total Gastos:</td>
-                  <td>${totalGastos}</td>
-                </tr>
-                <tr>
-                  <td>Diferencia:</td>
-                  <td>${diferencia}</td>
-                </tr>
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TableContainer>
-      )}
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <tr>
+              <td>Total Ingresos:</td>
+              <td>${totalIngresos}</td>
+            </tr>
+            <tr>
+              <td>Total Gastos:</td>
+              <td>${totalGastos}</td>
+            </tr>
+            <tr>
+              <td>Diferencia:</td>
+              <td>${diferencia}</td>
+            </tr>
+          </TableBody>
+        </Table>
+      </TableContainer>
     </ReportContainer>
   );
 };
 
-export default Report;
+export default Reports;

@@ -377,6 +377,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     disabled={isDisplayMode}
                     type='text' // Cambiar a texto para evitar restricciones de longitud
                     name='unit_price'
+                    label='Precio unitario'
                     value={detail.unit_price.toLocaleString('es-PY')}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth
@@ -419,12 +420,14 @@ const FormComponent: React.FC<FormComponentProps> = ({
                   </StyledTextField>
                 </Grid>
                 {/* IconButton con DeleteIcon */}
-                <StyledIconButton
-                  color='error'
-                  onClick={() => removeTransactionDetail(index)}
-                >
-                  <DeleteIcon />
-                </StyledIconButton>
+                {!isDisplayMode && (
+                  <StyledIconButton
+                    color='error'
+                    onClick={() => removeTransactionDetail(index)}
+                  >
+                    <DeleteIcon />
+                  </StyledIconButton>
+                )}
               </Grid>
 
               <Grid container spacing={3} mt={2}>
@@ -452,11 +455,14 @@ const FormComponent: React.FC<FormComponentProps> = ({
               </Grid>
             </Box>
           ))}
-          <Box display='flex' justifyContent='flex-end' mt={2}>
-            <StyledButton onClick={addTransactionDetail} type='button'>
-              Agregar
-            </StyledButton>
-          </Box>
+
+          {!isDisplayMode && (
+            <Box display='flex' justifyContent='flex-end' mt={2}>
+              <StyledButton onClick={addTransactionDetail} type='button'>
+                Agregar
+              </StyledButton>
+            </Box>
+          )}
         </SectionPaper>
         <SectionPaper>
           <Typography variant='h6' gutterBottom color='textSecondary'>

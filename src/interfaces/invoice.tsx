@@ -13,6 +13,10 @@ export interface Invoice {
       condition: string;
       date: string;
       total: number;
+      subtotal?: number; // Asegúrate de que `subtotal` esté definido como opcional
+      tax_type?: string;
+      tax5?: number;
+      tax10?: number;
     };
     details: TransactionDetail[];
   };
