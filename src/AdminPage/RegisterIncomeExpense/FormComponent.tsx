@@ -377,6 +377,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     disabled={isDisplayMode}
                     type='text' // Cambiar a texto para evitar restricciones de longitud
                     name='unit_price'
+                    label='Precio unitario'
                     value={detail.unit_price.toLocaleString('es-PY')}
                     onChange={(e) => handleChange(e, index)}
                     fullWidth

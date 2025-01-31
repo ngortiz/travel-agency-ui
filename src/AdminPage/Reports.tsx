@@ -140,7 +140,8 @@ const Reports: React.FC<{ onViewInvoice: (invoiceId: number) => void }> = ({
   const navigate = useNavigate();
 
   const handleViewInvoice = (invoiceId: number) => {
-    navigate(`/visualizar-factura/${invoiceId}`);
+    console.log(`Visualizar factura con ID: ${invoiceId}`);
+    navigate(`/admin/register-income-expense/${invoiceId}`); // redirige al detalle de la factura
   };
 
   // Filtrar facturas según el tipo seleccionado
@@ -207,7 +208,7 @@ const Reports: React.FC<{ onViewInvoice: (invoiceId: number) => void }> = ({
       <InvoiceTable
         invoices={generatedReport}
         deleteInvoice={deleteInvoice}
-        onViewInvoice={onViewInvoice}
+        onViewInvoice={handleViewInvoice}
       />
 
       <TableContainer>

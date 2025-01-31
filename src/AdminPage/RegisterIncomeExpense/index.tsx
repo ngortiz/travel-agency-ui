@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import InvoiceTable from './InvoiceTable';
 import FormComponent from './FormComponent';
-import { Box, Snackbar, Alert } from '@mui/material';
+import { Box, Snackbar, Alert, Button } from '@mui/material';
 import { Invoice } from '../../interfaces/invoice';
 import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { TransactionDetail } from '../../interfaces/transactionDetail';
+import { useParams, useNavigate } from 'react-router-dom';
 
 // Desformatear el número a un formato limpio para cálculos
 const unformatNumber = (value: string): number => {
@@ -13,6 +14,17 @@ const unformatNumber = (value: string): number => {
 };
 
 const RegisterIncomeExpense: React.FC = () => {
+  const { invoiceId } = useParams<{ invoiceId: string }>(); // Obtener el ID desde la URL
+  const navigate = useNavigate(); // Usamos el hook de navegación
+
+  useEffect(() => {
+    if (invoiceId) {
+      invoiceId;
+    }
+  }, [invoiceId]);
+
+  // Estado para visualizar/ocultar la tabla
+
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -160,6 +172,54 @@ const RegisterIncomeExpense: React.FC = () => {
     setTransactionDetails(updatedDetails);
     calculateTotals();
   };
+  useEffect(() => {
+    const fetchInvoiceDetails = async () => {
+      if (invoiceId) {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+              },
+            }
+          );
+
+          if (response.ok) {
+            const invoice: Invoice = await response.json();
+            setSelectedInvoice(invoice);
+            setFormData(invoice.invoice.headers);
+
+            const details = invoice.invoice.details.map((detail) => ({
+              quantity: Number(detail.quantity),
+              unit_price: Number(detail.unit_price),
+              tax_type: detail.tax_type,
+              description: detail.description,
+            }));
+
+            setTransactionDetails(details);
+            calculateTotals(); // Recalcular totales al cargar los detalles
+
+            setIsDisplayMode(true);
+          } else {
+            setNotification({
+              show: true,
+              message: 'Error al obtener los detalles de la factura.',
+              type: 'error',
+            });
+          }
+        } catch (error) {
+          setNotification({
+            show: true,
+            message: 'Error al obtener los detalles de la factura.',
+            type: 'error',
+          });
+        }
+      }
+    };
+
+    fetchInvoiceDetails();
+  }, [invoiceId]); // Asegúrate de que esto se ejecute cada vez que cambie `invoiceId`
 
   const fetchInvoices = async () => {
     try {
@@ -186,6 +246,10 @@ const RegisterIncomeExpense: React.FC = () => {
       });
     }
   };
+  const handleBackButton = () => {
+    navigate('/admin/reports'); // Redirige a la página de reportes
+  };
+
   const handleViewInvoice = async (invoiceId: number) => {
     try {
       const response = await fetch(
@@ -204,14 +268,14 @@ const RegisterIncomeExpense: React.FC = () => {
         setFormData(invoice.invoice.headers);
 
         const details = invoice.invoice.details.map((detail) => ({
-          quantity: Number(detail.quantity), // Convertir a número
-          unit_price: Number(detail.unit_price), // Convertir a número
+          quantity: Number(detail.quantity),
+          unit_price: Number(detail.unit_price),
           tax_type: detail.tax_type,
           description: detail.description,
         }));
 
         setTransactionDetails(details);
-        calculateTotals(); // Recalcular totales al visualizar
+        calculateTotals();
 
         setIsDisplayMode(true);
       } else {
@@ -382,6 +446,7 @@ const RegisterIncomeExpense: React.FC = () => {
           {notification.message}
         </Alert>
       </Snackbar>
+
       <FormComponent
         formData={formData}
         transactionDetails={transactionDetails}
@@ -392,16 +457,49 @@ const RegisterIncomeExpense: React.FC = () => {
         handleSubmit={handleSubmit}
         isDisplayMode={isDisplayMode}
       />
-      <InvoiceTable
-        invoices={invoices}
-        deleteInvoice={handleOpenModal} // Pasamos la función de abrir el modal con el ID de la factura
-        onViewInvoice={handleViewInvoice}
-      />
+      {/* Mostrar solo el botón Volver Atrás si estamos en modo visualización */}
+      {isDisplayMode && (
+        <Button
+          variant='contained'
+          color='primary'
+          onClick={handleBackButton}
+          sx={{
+            marginBottom: '20px',
+            background: 'linear-gradient(90deg, #2196f3, #4caf50)',
+            padding: '10px 20px',
+            borderRadius: '50px',
+            fontSize: '16px',
+            fontWeight: '600',
+            textTransform: 'none',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              background: 'linear-gradient(90deg, #1e88e5, #43a047)',
+              transform: 'scale(1.05)',
+            },
+            '&:focus': {
+              outline: 'none',
+            },
+          }}
+        >
+          Volver Atrás
+        </Button>
+      )}
 
+      {/* Mostrar la tabla de facturación solo si NO estamos en modo de visualización */}
+      {!isDisplayMode && (
+        <InvoiceTable
+          invoices={invoices}
+          deleteInvoice={handleOpenModal}
+          onViewInvoice={handleViewInvoice}
+        />
+      )}
+
+      {/* Confirmar la eliminación de la factura en un modal */}
       <ConfirmDeleteModal
-        open={isModalOpen} // Estado que controla la visibilidad
-        onClose={handleCloseModal} // Función para cerrar el modal
-        onConfirm={handleConfirmDelete} // Función para confirmar la eliminación
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
       />
     </Box>
   );
