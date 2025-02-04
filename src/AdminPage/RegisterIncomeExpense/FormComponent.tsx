@@ -18,6 +18,7 @@ import {
 import { styled } from '@mui/material/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TransactionDetail } from '../../interfaces/transactionDetail';
+import InvoicePDF from '../InvoicePDF';
 
 // Estilos personalizados
 const FormPaper = styled(Paper)(({ theme }) => ({
@@ -89,6 +90,20 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
 interface FieldErrors {
   [key: string]: boolean;
 }
+interface InvoiceData {
+  document_number: string;
+  company: string;
+  address: string;
+  phone: string;
+  email: string;
+  customer: string;
+  ruc: string;
+  date: string;
+  document_type: string;
+  condition: string;
+  details: { description: string; quantity: number; unit_price: number }[];
+  totals: { exempt: number; tax5: number; tax10: number; total: number };
+}
 
 interface FormComponentProps {
   formData: any;
@@ -151,6 +166,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
     fieldErrors[field]
       ? { border: '2px solid red !important', borderRadius: '10px' }
       : {};
+
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(
+    null
+  );
+  const [showPDF, setShowPDF] = useState(false);
+
+  const handleInvoiceSelection = (invoice: InvoiceData) => {
+    setSelectedInvoice(invoice);
+  };
 
   return (
     <FormPaper elevation={6}>
@@ -508,7 +532,44 @@ const FormComponent: React.FC<FormComponentProps> = ({
           </TableContainer>
         </SectionPaper>
         <Box display='flex' justifyContent='center' mt={3}>
-          <StyledButton type='submit'>Guardar</StyledButton>
+          {isDisplayMode ? (
+            <StyledButton
+              type='button'
+              onClick={() => {
+                const invoice = {
+                  document_number: formData.document_number,
+                  company: formData.company || 'GLOBE TRAVEL',
+                  address:
+                    formData.address ||
+                    'Constitución Nacional casi Antequera, 6000',
+                  phone: formData.phone || '0984 489517',
+                  customer: formData.customer,
+                  ruc: formData.ruc,
+                  date: formData.date,
+                  email: formData.email,
+                  document_type: formData.document_type,
+                  condition: formData.condition,
+                  details: transactionDetails.map((detail) => ({
+                    description: detail.description,
+                    quantity: detail.quantity,
+                    unit_price: detail.unit_price,
+                  })),
+                  totals: totals,
+                };
+
+                setSelectedInvoice(invoice);
+                setShowPDF(true);
+              }}
+            >
+              Imprimir
+            </StyledButton>
+          ) : (
+            <StyledButton type='submit'>Guardar</StyledButton>
+          )}
+
+          {showPDF && selectedInvoice && (
+            <InvoicePDF invoiceData={selectedInvoice} />
+          )}
         </Box>
       </form>
     </FormPaper>
