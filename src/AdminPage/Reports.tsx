@@ -103,15 +103,12 @@ const Table = styled.table`
   border-collapse: collapse;
 `;
 
-const Reports: React.FC<{ onViewInvoice: (invoiceId: number) => void }> = ({
-  onViewInvoice,
-}) => {
+const Reports: React.FC<{}> = () => {
   const [type, setType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [generatedReport, setGeneratedReport] = useState<Invoice[]>([]);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
     fetchInvoices();
@@ -141,10 +138,9 @@ const Reports: React.FC<{ onViewInvoice: (invoiceId: number) => void }> = ({
 
   const handleViewInvoice = (invoiceId: number) => {
     console.log(`Visualizar factura con ID: ${invoiceId}`);
-    navigate(`/admin/register-income-expense/${invoiceId}`); // redirige al detalle de la factura
+    navigate(`/admin/register-income-expense/${invoiceId}`);
   };
 
-  // Filtrar facturas según el tipo seleccionado
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 

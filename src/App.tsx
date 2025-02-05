@@ -13,10 +13,6 @@ import AdminDashboard from './AdminPage/AdminDashboard';
 
 const App: React.FC = () => {
   // Definir el método onViewInvoice
-  const onViewInvoice = (invoiceId: number) => {
-    console.log(`Visualizar factura con ID: ${invoiceId}`);
-    // Aquí puedes agregar la lógica para manejar la visualización de la factura
-  };
 
   return (
     <BrowserRouter>
@@ -39,10 +35,7 @@ const App: React.FC = () => {
               element={<RegisterIncomeExpense />}
             />
 
-            <Route
-              path='reports'
-              element={<Reports onViewInvoice={onViewInvoice} />}
-            />
+            <Route path='reports' element={<Reports />} />
           </Route>
         </Routes>
       </AuthProvider>
