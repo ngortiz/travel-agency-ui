@@ -210,7 +210,17 @@ const UploadBanners: React.FC = () => {
   };
 
   return (
-    <Container>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa, #e3f2fd)',
+        padding: '50px',
+      }}
+    >
       <Title>Subir Banners</Title>
       {notifications.map((note, index) => (
         <Notification key={index}>{note}</Notification>
@@ -254,7 +264,7 @@ const UploadBanners: React.FC = () => {
           </UploadBox>
         </BannerContainer>
       )}
-    </Container>
+    </Box>
   );
 };
 

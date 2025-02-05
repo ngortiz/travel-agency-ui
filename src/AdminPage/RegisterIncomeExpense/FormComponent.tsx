@@ -561,7 +561,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 setShowPDF(true);
               }}
             >
-              Imprimir
+              Descargar en PDF
             </StyledButton>
           ) : (
             <StyledButton type='submit'>Guardar</StyledButton>

@@ -1,21 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 6rem 1rem;
-  background: linear-gradient(135deg, #f2f2f2, #e0f7fa);
-`;
+import { Box } from '@mui/material';
 
 const FormTitle = styled.h2`
   font-size: 2.5rem;
   text-align: center;
-  color: #127ca8;
+  color: #1a76d2;
   margin-bottom: 2rem;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
@@ -23,30 +14,25 @@ const FormTitle = styled.h2`
 
 const Form = styled.form`
   width: 100%;
-  max-width: 700px;
+  max-width: 900px;
   background-color: #ffffff;
   padding: 2.5rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  color: #1a76d2;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 1.5rem;
-`;
-
-const ImagePreview = styled.img`
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 `;
 
 const Label = styled.label`
   font-size: 1.1rem;
-  color: #37474f;
+  color: #1a76d2;
   margin-bottom: 0.5rem;
   font-weight: 600;
 `;
@@ -85,10 +71,13 @@ const TextArea = styled.textarea`
 `;
 
 const SubmitButton = styled.button`
-  width: 40%;
+  grid-column: span 2;
   padding: 1rem;
+  width: 30% !important;
+  align-items: center !important;
+  margin-left: 33%;
   font-size: 1.1rem;
-  background-color: #127ca8;
+  background: linear-gradient(90deg, #2196f3, #4caf50);
   color: #ffffff;
   border: 2px solid #127ca8;
   border-radius: 30px;
@@ -96,11 +85,10 @@ const SubmitButton = styled.button`
   font-weight: bold;
   transition: all 0.3s ease;
   box-shadow: 1 4px 15px rgba(0, 0, 0, 0.1);
-  margin-left: 28%;
+  margin-top: 2rem;
 
   &:hover {
-    color: #127ca8;
-    background-color: #ffffff;
+    background: linear-gradient(90deg, #1e88e5, #43a047);
   }
 
   &:active {
@@ -126,6 +114,13 @@ const Notification = styled.div<{ show: boolean; type: 'success' | 'error' }>`
   opacity: ${(props) => (props.show ? 1 : 0)};
   transform: translateY(${(props) => (props.show ? '0' : '-20px')});
   transition: opacity 0.5s ease, transform 0.5s ease;
+`;
+const ImagePreview = styled.img`
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 `;
 
 const CreatePackage: React.FC = () => {
@@ -249,7 +244,7 @@ const CreatePackage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validacion de los campos
+
     const isFormValid =
       formData.name.length >= 4 &&
       formData.name.length <= 50 &&
@@ -409,7 +404,17 @@ const CreatePackage: React.FC = () => {
   };
 
   return (
-    <Container>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa, #e3f2fd)',
+        padding: '50px',
+      }}
+    >
       <FormTitle>
         {isEditMode ? 'Editar Paquete' : 'Crear Nuevo Paquete'}
       </FormTitle>
@@ -430,13 +435,15 @@ const CreatePackage: React.FC = () => {
         </FormGroup>
         <FormGroup>
           <Label>Descripción:</Label>
-          <TextArea
+          <Input
+            type='text'
             name='description'
             placeholder='Ingrese una descripción'
             onChange={handleChange}
             value={formData.description}
             className={!fieldValidity.description ? 'is-invalid' : ''}
-          ></TextArea>
+          />
+
           {!fieldValidity.description && (
             <small>La descripción debe tener entre 4 y 300 caracteres.</small>
           )}
@@ -509,13 +516,15 @@ const CreatePackage: React.FC = () => {
         </FormGroup>
         <FormGroup>
           <Label>Servicios Incluidos:</Label>
-          <TextArea
+
+          <Input
+            type='text'
             name='included_services'
-            placeholder='Ingrese los servicios'
+            placeholder=' Ingrese los servicios'
             onChange={handleChange}
             value={formData.included_services}
             className={!fieldValidity.included_services ? 'is-invalid' : ''}
-          ></TextArea>
+          />
           {!fieldValidity.included_services && (
             <small>El país debe tener entre 4 y 50 caracteres.</small>
           )}
@@ -549,7 +558,7 @@ const CreatePackage: React.FC = () => {
           {notification.message}
         </Notification>
       )}
-    </Container>
+    </Box>
   );
 };
 

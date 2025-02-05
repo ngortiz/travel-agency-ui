@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FiPackage,
@@ -10,6 +10,7 @@ import {
   FiRepeat,
 } from 'react-icons/fi';
 import { Sort } from '@mui/icons-material';
+import logo from '../assets/logo.png';
 
 const DashboardContainer = styled.div`
   display: flex;
@@ -89,7 +90,30 @@ const Content = styled.div`
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
+const WelcomeSection = styled.section`
+  text-align: center;
+  margin-bottom: 2rem;
 
+  h2 {
+    font-size: 2rem;
+    color: #127ca8;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    margin-top: 5rem;
+  }
+
+  p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+  }
+
+  img {
+    max-width: 40%;
+    border-radius: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+`;
 const ToggleButton = styled.button`
   position: fixed;
   top: 20px;
@@ -116,10 +140,12 @@ const ToggleButton = styled.button`
 
 const AdminDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+  const isDashboardPage = location.pathname === '/admin';
 
   return (
     <DashboardContainer>
@@ -165,6 +191,17 @@ const AdminDashboard: React.FC = () => {
       </Sidebar>
 
       <Content>
+        {/* Mostrar bienvenida solo en la página principal */}
+        {isDashboardPage && (
+          <WelcomeSection>
+            <h2>Bienvenido a la Página de Administración de Globe Travel</h2>
+            <p>
+              Aquí podrás gestionar todos los paquetes, banners, y más. ¡Vamos a
+              comenzar!
+            </p>
+            <img src={logo} alt='Agency Logo' />
+          </WelcomeSection>
+        )}
         <Outlet />
       </Content>
     </DashboardContainer>
