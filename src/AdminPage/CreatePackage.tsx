@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { Box } from '@mui/material';
+import { Box, TextField } from '@mui/material';
 
 const FormTitle = styled.h2`
   font-size: 2.5rem;
   text-align: center;
   color: #1a76d2;
   margin-bottom: 2rem;
-  font-weight: 600;
+  font-weight: 700;
   font-family: 'Poppins', sans-serif;
 `;
 
@@ -34,14 +34,14 @@ const Label = styled.label`
   font-size: 1.1rem;
   color: #1a76d2;
   margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-weight: 500;
 `;
 
 const Input = styled.input`
   padding: 0.9rem;
   font-size: 1rem;
   color: #37474f;
-  border: 2px solid #d1d1d1;
+  border: 1px solid #d1d1d1;
   border-radius: 10px;
   background-color: #f9f9f9;
   transition: border-color 0.3s ease;
@@ -53,29 +53,24 @@ const Input = styled.input`
   }
 `;
 
-const TextArea = styled.textarea`
-  padding: 0.9rem;
-  font-size: 1rem;
-  color: #37474f;
-  border: 2px solid #d1d1d1;
-  border-radius: 10px;
-  background-color: #f9f9f9;
-  transition: border-color 0.3s ease;
-  resize: vertical;
-
-  &:focus {
-    border-color: #127ca8;
-    background-color: #ffffff;
-    outline: none;
-  }
-`;
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: '#f9f9f9',
+    boxShadow: '0 1px 1px rgba(0, 0, 0, 0.1)',
+    padding: '6px',
+  },
+  '& .MuiInputLabel-root': {
+    color: '#1a76d2',
+  },
+}));
 
 const SubmitButton = styled.button`
   grid-column: span 2;
   padding: 1rem;
-  width: 30% !important;
+  width: 22% !important;
   align-items: center !important;
-  margin-left: 33%;
+  margin-left: 39%;
   font-size: 1.1rem;
   background: linear-gradient(90deg, #2196f3, #4caf50);
   color: #ffffff;
@@ -433,17 +428,17 @@ const CreatePackage: React.FC = () => {
             <small>El nombre debe tener entre 4 y 50 caracteres.</small>
           )}
         </FormGroup>
-        <FormGroup>
-          <Label>Descripción:</Label>
-          <Input
-            type='text'
-            name='description'
-            placeholder='Ingrese una descripción'
-            onChange={handleChange}
-            value={formData.description}
-            className={!fieldValidity.description ? 'is-invalid' : ''}
-          />
 
+        <FormGroup style={{ gridColumn: 'span 2' }}>
+          <Label>Descripción:</Label>
+          <StyledTextField
+            name='description'
+            multiline
+            rows={3}
+            value={formData.description}
+            onChange={handleChange}
+            fullWidth
+          />
           {!fieldValidity.description && (
             <small>La descripción debe tener entre 4 y 300 caracteres.</small>
           )}
@@ -541,7 +536,6 @@ const CreatePackage: React.FC = () => {
           )}
           <Input type='file' accept='image/*' onChange={handleImageChange} />
         </FormGroup>
-
         {isEditMode ? (
           <SubmitButton type='submit' disabled={loading}>
             {loading ? 'Actualizando...' : 'Actualizar Paquete'}
