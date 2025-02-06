@@ -53,8 +53,8 @@ const StyledTypography = styled(Typography)`
 `;
 
 const AdminButton = styled.button`
-  background-color: ${COLORS.primary} !important;
-  color: ${COLORS.text};
+  background: linear-gradient(90deg, #2196f3, #4caf50);
+  color: #ffffff;
   padding: 0.5rem 1rem;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   border: 1px solid #f4f6f9;
@@ -64,11 +64,8 @@ const AdminButton = styled.button`
   font-size: 1rem;
   transition: background-color 0.3s ease, transform 0.2s ease;
 
-  &:hover {
-    background-color: #ffffff !important;
-    color: ${COLORS.primary};
-    border: 2px solid ${COLORS.primary};
-    transform: scale(1.05);
+  '&:hover': {
+    background: linear-gradient(90deg, #1e88e5, #43a047);
   }
 
   @media (max-width: 600px) {

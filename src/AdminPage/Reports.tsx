@@ -37,6 +37,7 @@ const Form = styled.form`
 `;
 
 const Select = styled.select`
+  margin-left: 25px;
   padding: 0.7rem 4rem;
   font-size: 1rem;
   border: 1px solid #1a76d2;
@@ -50,6 +51,7 @@ const Select = styled.select`
 `;
 
 const Input = styled.input`
+  margin-right: 10px;
   padding: 0.7rem 4rem;
   font-size: 1rem;
   border: 1px solid #1a76d2;
@@ -71,7 +73,7 @@ const Button = styled.button`
   color: #ffffff;
   font-weight: bold;
   cursor: pointer;
-  margin-right: 15px;
+  margin-right: 31px;
   width: 10%;
   &:hover {
     background: linear-gradient(90deg, #1e88e5, #43a047);

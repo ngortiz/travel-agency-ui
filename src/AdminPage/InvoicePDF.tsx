@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import html2pdf from 'html2pdf.js';
 
@@ -22,146 +22,152 @@ interface Props {
 }
 
 const InvoicePDF: React.FC<Props> = ({ invoiceData }) => {
-  useEffect(() => {
-    const generatePDF = () => {
-      const content = document.getElementById('invoice-content');
-      if (content) {
-        html2pdf()
-          .set({
-            margin: 10,
-            filename: `Factura_${invoiceData.document_number}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          })
-          .from(content)
-          .save();
-      }
-    };
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
-    generatePDF();
+  useEffect(() => {
+    if (invoiceRef.current) {
+      html2pdf()
+        .set({
+          margin: 10,
+          filename: `Factura_${invoiceData.document_number}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(invoiceRef.current)
+        .save();
+    }
   }, [invoiceData]);
 
   return (
-    <Container id='invoice-content'>
-      {/* Cabecera */}
-      <Header>
-        <CompanyInfo>
-          <CompanyName>{invoiceData.company}</CompanyName>
-          <InfoText>
-            <strong>Dirección:</strong> {invoiceData.address}
-          </InfoText>
-          <InfoText>
-            <strong>Teléfono:</strong> {invoiceData.phone}
-          </InfoText>
-        </CompanyInfo>
-        <InvoiceBox>
-          <InfoText>
-            <strong>Timbrado Nº:</strong> XXXXXXX
-          </InfoText>
-          <InfoText>
-            <strong>Inicio de Vigencia:</strong> XXXXXX
-          </InfoText>
-          <InfoText>
-            <strong>RUC:</strong> XXXXXXX-0
-          </InfoText>
-          <InfoText>
-            <strong>Factura:</strong> {invoiceData.document_number}
-          </InfoText>
-        </InvoiceBox>
-      </Header>
+    <HiddenContainer>
+      <Container ref={invoiceRef}>
+        <Header>
+          <CompanyInfo>
+            <CompanyName>{invoiceData.company}</CompanyName>
+            <InfoText>
+              <strong>Dirección:</strong> {invoiceData.address}
+            </InfoText>
+            <InfoText>
+              <strong>Teléfono:</strong> {invoiceData.phone}
+            </InfoText>
+          </CompanyInfo>
+          <InvoiceBox>
+            <InfoText>
+              <strong>Timbrado Nº:</strong> XXXXXXX
+            </InfoText>
+            <InfoText>
+              <strong>Inicio de Vigencia:</strong> XXXXXX
+            </InfoText>
+            <InfoText>
+              <strong>RUC:</strong> XXXXXXX-0
+            </InfoText>
+            <InfoText>
+              <strong>Factura:</strong> {invoiceData.document_number}
+            </InfoText>
+          </InvoiceBox>
+        </Header>
 
-      {/* Datos de la Factura */}
-      <InfoRow>
-        <InfoText>
-          <strong>Fecha de Emisión:</strong> {invoiceData.date}
-        </InfoText>
-        <InfoText>
-          <strong>Condición de Venta:</strong> {invoiceData.condition}
-        </InfoText>
-      </InfoRow>
+        {/* Datos de la Factura */}
+        <InfoRow>
+          <InfoText>
+            <strong>Fecha de Emisión:</strong> {invoiceData.date}
+          </InfoText>
+          <InfoText>
+            <strong>Condición de Venta:</strong> {invoiceData.condition}
+          </InfoText>
+        </InfoRow>
 
-      {/* Datos del Cliente */}
-      <SectionTitle>Datos del Cliente</SectionTitle>
-      <ClientInfo>
-        <InfoText>
-          <strong>Nombre:</strong> {invoiceData.customer}
-        </InfoText>
-        <InfoText>
-          <strong>RUC:</strong> {invoiceData.ruc}
-        </InfoText>
-      </ClientInfo>
+        {/* Datos del Cliente */}
+        <SectionTitle>Datos del Cliente</SectionTitle>
+        <ClientInfo>
+          <InfoText>
+            <strong>Nombre:</strong> {invoiceData.customer}
+          </InfoText>
+          <InfoText>
+            <strong>RUC:</strong> {invoiceData.ruc}
+          </InfoText>
+        </ClientInfo>
 
-      {/* Detalles */}
-      <SectionTitle>Detalles</SectionTitle>
-      <Table>
-        <thead>
-          <TableHeader>
-            <th>Descripción</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Total</th>
-          </TableHeader>
-        </thead>
-        <tbody>
-          {invoiceData.details.map((item, index) => (
-            <TableRow key={index}>
-              <TableCell>{item.description}</TableCell>
-              <TableCellCenter>{item.quantity}</TableCellCenter>
+        {/* Detalles */}
+        <SectionTitle>Detalles</SectionTitle>
+        <Table>
+          <thead>
+            <TableHeader>
+              <th>Descripción</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              <th>Total</th>
+            </TableHeader>
+          </thead>
+          <tbody>
+            {invoiceData.details.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell>{item.description}</TableCell>
+                <TableCellCenter>{item.quantity}</TableCellCenter>
+                <TableCellRight>
+                  {item.unit_price.toLocaleString('es-PY')} PYG
+                </TableCellRight>
+                <TableCellRight>
+                  {(item.quantity * item.unit_price).toLocaleString('es-PY')}{' '}
+                  PYG
+                </TableCellRight>
+              </TableRow>
+            ))}
+          </tbody>
+        </Table>
+
+        {/* Totales */}
+        <SectionTitle>Totales</SectionTitle>
+        <Table>
+          <tbody>
+            <TableRow>
+              <TableCell>
+                <strong>Exento:</strong>
+              </TableCell>
               <TableCellRight>
-                {item.unit_price.toLocaleString('es-PY')} PYG
-              </TableCellRight>
-              <TableCellRight>
-                {(item.quantity * item.unit_price).toLocaleString('es-PY')} PYG
+                {invoiceData.totals.exempt.toLocaleString('es-PY')} PYG
               </TableCellRight>
             </TableRow>
-          ))}
-        </tbody>
-      </Table>
-
-      {/* Totales */}
-      <SectionTitle>Totales</SectionTitle>
-      <Table>
-        <tbody>
-          <TableRow>
-            <TableCell>
-              <strong>Exento:</strong>
-            </TableCell>
-            <TableCellRight>
-              {invoiceData.totals.exempt.toLocaleString('es-PY')} PYG
-            </TableCellRight>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <strong>IVA 5%:</strong>
-            </TableCell>
-            <TableCellRight>
-              {invoiceData.totals.tax5.toLocaleString('es-PY')} PYG
-            </TableCellRight>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <strong>IVA 10%:</strong>
-            </TableCell>
-            <TableCellRight>
-              {invoiceData.totals.tax10.toLocaleString('es-PY')} PYG
-            </TableCellRight>
-          </TableRow>
-          <TableRowTotal>
-            <TableCell>
-              <strong>Total:</strong>
-            </TableCell>
-            <TableCellRight>
-              {invoiceData.totals.total.toLocaleString('es-PY')} PYG
-            </TableCellRight>
-          </TableRowTotal>
-        </tbody>
-      </Table>
-    </Container>
+            <TableRow>
+              <TableCell>
+                <strong>IVA 5%:</strong>
+              </TableCell>
+              <TableCellRight>
+                {invoiceData.totals.tax5.toLocaleString('es-PY')} PYG
+              </TableCellRight>
+            </TableRow>
+            <TableRow>
+              <TableCell>
+                <strong>IVA 10%:</strong>
+              </TableCell>
+              <TableCellRight>
+                {invoiceData.totals.tax10.toLocaleString('es-PY')} PYG
+              </TableCellRight>
+            </TableRow>
+            <TableRowTotal>
+              <TableCell>
+                <strong>Total:</strong>
+              </TableCell>
+              <TableCellRight>
+                {invoiceData.totals.total.toLocaleString('es-PY')} PYG
+              </TableCellRight>
+            </TableRowTotal>
+          </tbody>
+        </Table>
+      </Container>
+    </HiddenContainer>
   );
 };
 
 // 🔹 Styled Components 🔹
+
+const HiddenContainer = styled.div`
+  position: absolute;
+  left: -9999px;
+  visibility: hidden;
+`;
+
 const Container = styled.div`
   max-width: 800px;
   padding: 20px;
