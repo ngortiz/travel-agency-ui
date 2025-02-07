@@ -170,6 +170,13 @@ const AdminDashboard: React.FC = () => {
             </StyledLink>
           </MenuItem>
           <MenuItem>
+            <MenuItem>
+              <StyledLink to='/admin/upload-excel'>
+                <FiPackage size={20} />
+                Archivo Excel
+              </StyledLink>
+            </MenuItem>
+            <MenuItem></MenuItem>
             <StyledLink to='/admin/upload-banner'>
               <FiImage size={20} />
               Banner

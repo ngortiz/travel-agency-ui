@@ -3,16 +3,6 @@ import styled from 'styled-components';
 import { FiUpload, FiTrash } from 'react-icons/fi';
 import { CircularProgress, Box } from '@mui/material';
 
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f7ff, #ffffff);
-  padding: 40px 20px;
-`;
-
 const Title = styled.h2`
   font-size: 2.5rem;
   color: #127ca8;
