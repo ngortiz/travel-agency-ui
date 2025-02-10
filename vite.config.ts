@@ -11,6 +11,12 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/visitbrasil': {
+        target: 'https://visitbrasil.com',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/visitbrasil/, ''),
+      },
     },
   },
 });
