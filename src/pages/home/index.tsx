@@ -18,6 +18,7 @@ import { PackageDetails } from '../../components/PackageDetailsModal';
 import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
 import Footer from '../../Footer';
+import Swal from 'sweetalert2';
 
 const StyledCarouselItem = styled(Box)`
   background-size: contain;
@@ -191,9 +192,19 @@ const Home: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este paquete?')) {
-      return;
-    }
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'No podrás revertir esta acción',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: 'linear-gradient(90deg, #2196f3, #4caf50)',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/packages/${id}`, {
         method: 'DELETE',
@@ -202,13 +213,25 @@ const Home: React.FC = () => {
           'Content-Type': 'application/json',
         },
       });
+
       setPackages((prevPackages) =>
         prevPackages.filter((pkg) => pkg.id !== id)
       );
-      alert('Paquete eliminado con éxito');
+
+      Swal.fire({
+        title: '¡Eliminado!',
+        text: 'El paquete ha sido eliminado con éxito.',
+        icon: 'success',
+        confirmButtonColor: '#127ca8',
+      });
     } catch (error) {
       console.error('Error eliminando el paquete:', error);
-      alert('Hubo un error al intentar eliminar el paquete');
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un problema al eliminar el paquete.',
+        icon: 'error',
+        confirmButtonColor: '#d33',
+      });
     }
   };
 

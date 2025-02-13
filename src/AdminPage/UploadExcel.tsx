@@ -30,11 +30,12 @@ const Title = styled.h2`
 
 const Input = styled.input`
   display: none;
+  background: linear-gradient(90deg, #2196f3, #4caf50);
 `;
 
 const Label = styled.label`
   display: inline-block;
-  background: #007bff;
+  background: linear-gradient(90deg, #2196f3, #4caf50);
   color: white;
   padding: 10px 15px;
   border-radius: 6px;
@@ -42,7 +43,7 @@ const Label = styled.label`
   transition: background 0.3s;
 
   &:hover {
-    background: #0056b3;
+    background: linear-gradient(90deg, #1e88e5, #43a047);
   }
 `;
 
@@ -53,7 +54,7 @@ const FileName = styled.p`
 `;
 
 const Button = styled.button`
-  background: #28a745;
+  background: linear-gradient(90deg, #2196f3, #4caf50);
   color: white;
   padding: 10px 15px;
   border: none;
@@ -64,7 +65,7 @@ const Button = styled.button`
   margin-top: 15px;
 
   &:hover {
-    background: #218838;
+    background: linear-gradient(90deg, #1e88e5, #43a047);
   }
 `;
 
@@ -148,41 +149,22 @@ const UploadExcel: React.FC = () => {
 
     return '';
   };
-  function blobToBase64(blob: Blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result); // Resolve with Base64 data
-      reader.onerror = reject; // Handle errors
-      reader.readAsDataURL(blob);
-    });
-  }
-  const cleanRowData = async (row: any) => {
-    const response = await fetch(row['image_url'], {
-      method: 'GET',
-      headers: { 'Access-Control-Allow-Origin': '*' },
-    });
-    const blob = await response.blob();
 
-    const imageData = await blobToBase64(blob);
-    return {
-      name: row['name']?.trim() || 'Sin nombre',
-      description: row['description']?.trim() || 'Descripción no disponible',
-      cost_price: row['cost_price'] ? Number(row['cost_price']) : 0,
-      sell_price: row['sell_price'] ? Number(row['sell_price']) : 0,
-      city: row['city']?.trim() || 'Desconocida',
-      country: row['country']?.trim() || 'Desconocido',
-      start_date: convertExcelDate(row['start_date']),
-      end_date: convertExcelDate(row['end_date']),
-      included_services:
-        typeof row['included_services'] === 'string'
-          ? row['included_services'].split(',').map((s: string) => s.trim())
-          : ['No especificado'],
-      image: {
-        format: row['image_url'].split('.').at(-1),
-        data: imageData,
-      },
-    };
-  };
+  const cleanRowData = (row: any) => ({
+    name: row['name']?.trim() || 'Sin nombre',
+    description: row['description']?.trim() || 'Descripción no disponible',
+    cost_price: row['cost_price'] ? Number(row['cost_price']) : 0,
+    sell_price: row['sell_price'] ? Number(row['sell_price']) : 0,
+    city: row['city']?.trim() || 'Desconocida',
+    country: row['country']?.trim() || 'Desconocido',
+    start_date: convertExcelDate(row['start_date']),
+    end_date: convertExcelDate(row['end_date']),
+    included_services:
+      typeof row['included_services'] === 'string'
+        ? row['included_services'].split(',').map((s: string) => s.trim())
+        : ['No especificado'],
+    image_url: row['image_url'] || 'https://placehold.co/200',
+  });
 
   const handleSubmit = async () => {
     try {
@@ -195,6 +177,20 @@ const UploadExcel: React.FC = () => {
       const formattedData = data.map(cleanRowData);
 
       // 🔍 Validación antes de enviar los datos
+      const invalidPackages = formattedData.filter(
+        (pkg) =>
+          pkg.name.length < 3 ||
+          pkg.description.length < 10 ||
+          !pkg.city ||
+          !pkg.country ||
+          pkg.included_services.length === 0
+      );
+
+      if (invalidPackages.length > 0) {
+        alert('Hay paquetes con datos inválidos. Revisa el archivo Excel.');
+        console.warn('❌ Paquetes inválidos:', invalidPackages);
+        return;
+      }
 
       console.log('📤 Datos enviados a la API:', formattedData);
 
