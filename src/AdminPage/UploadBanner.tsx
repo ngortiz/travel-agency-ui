@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FiUpload, FiTrash } from 'react-icons/fi';
 import { CircularProgress, Box } from '@mui/material';
+import Swal from 'sweetalert2';
 
 const Title = styled.h2`
   font-size: 2.5rem;
@@ -14,12 +15,13 @@ const Notification = styled.div`
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: #127ca8;
-  color: white;
+  background-color: #dff0d8;
+  border: 1px solid transparent;
+  color: #3c763d;
   padding: 10px 20px;
   border-radius: 5px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
+  z-index: 9999;
 `;
 
 const BannerContainer = styled.div`
@@ -89,12 +91,12 @@ const Button = styled.button`
 `;
 
 const DeleteButton = styled(Button)`
-  background-color: #ff5c5c;
+  font-weight: 600;
+  background: linear-gradient(90deg, #2196f3, #4caf50);
+  width: 33%;
 
   &:hover {
-    background-color: white;
-    color: #ff5c5c;
-    border: 2px solid #ff5c5c;
+    background: linear-gradient(90deg, #1e88e5, #43a047);
   }
 `;
 
@@ -138,7 +140,7 @@ const UploadBanners: React.FC = () => {
 
   const addNotification = (message: string) => {
     setNotifications((prev) => [...prev, message]);
-    setTimeout(() => setNotifications((prev) => prev.slice(1)), 3000);
+    setTimeout(() => setNotifications((prev) => prev.slice(1)), 5000);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,9 +183,18 @@ const UploadBanners: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este banner?')) {
-      return;
-    }
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'No podrás revertir esta acción',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) return;
     try {
       await fetch(`${import.meta.env.VITE_API_URL}/banners/${id}`, {
         method: 'DELETE',
@@ -191,7 +202,16 @@ const UploadBanners: React.FC = () => {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
-      addNotification('Banner eliminado con éxito');
+      setBanners((prevBanners) =>
+        prevBanners.filter((banner) => banner.id !== id)
+      );
+      Swal.fire({
+        title: '¡Eliminado!',
+        text: 'El banner ha sido eliminado con éxito.',
+        icon: 'success',
+        confirmButtonColor: '#127ca8',
+      });
+      // Volver a obtener los banners desde la API para evitar inconsistencias
       fetchBanners();
     } catch (error) {
       console.error('Error deleting banner:', error);
