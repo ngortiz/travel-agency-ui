@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Box, TextField } from '@mui/material';
+import { getPackage } from '../api/package';
 
 const FormTitle = styled.h2`
   font-size: 2.5rem;
@@ -161,7 +162,7 @@ const CreatePackage: React.FC = () => {
   useEffect(() => {
     if (id) {
       // fetch a la api con el id
-      fetchPackage(id);
+      fetchPackageData(id);
       setIsEditMode(true);
     }
   }, []);
@@ -177,38 +178,30 @@ const CreatePackage: React.FC = () => {
     setPreviewUrl(null);
   }, [image]);
 
-  const fetchPackage = async (id: string) => {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/packages/${id}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+  const fetchPackageData = async (id: string) => {
+    try {
+      const data = await getPackage(id);
+      if (data.error) {
+        console.error('Error al obtener paquete:', data.error);
+        return;
       }
-    );
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+      setFormData({
+        name: data.name,
+        description: data.description,
+        cost_price: data.cost_price.toString(),
+        sell_price: data.sell_price.toString(),
+        city: data.city,
+        country: data.country,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        included_services: data.included_services.join(','),
+        non_included_services: data.non_included_services.join(','),
+        image_url: data.image_url,
+      });
+    } catch (error) {
+      console.error('Error en fetchPackageData:', error);
     }
-
-    const data = await response.json();
-    console.log(data);
-    setFormData({
-      name: data.name,
-      description: data.description,
-      cost_price: data.cost_price,
-      sell_price: data.sell_price,
-      city: data.city,
-      country: data.country,
-      start_date: data.start_date,
-      end_date: data.end_date,
-      included_services: data.included_services.join(','),
-      non_included_services: data.non_included_services.join(','),
-      image_url: data.image_url,
-    });
   };
 
   const handleChange = (

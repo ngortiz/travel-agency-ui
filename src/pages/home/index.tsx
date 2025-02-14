@@ -19,6 +19,8 @@ import PackageCard from '../../PackageCard';
 import PackageDetailsModal from '../../components/PackageDetailsModal';
 import Footer from '../../Footer';
 import Swal from 'sweetalert2';
+import { fetchPackages, deletePackage } from '../../api/package';
+import { fetchBanners } from '../../api/banner';
 
 const StyledCarouselItem = styled(Box)`
   background-size: contain;
@@ -112,40 +114,34 @@ const Home: React.FC = () => {
   const [packagesPerPage] = useState(6);
   const [banners, setBanners] = useState<string[]>([]);
 
-  const fetchBanners = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/banners`);
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      setBanners(data.map((banner: { image_url: string }) => banner.image_url));
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+  const handleFetchBanners = async () => {
+    setLoading(true);
+    const response = await fetchBanners();
+
+    if (response.error) {
+      setError(response.error);
+    } else {
+      setBanners(
+        response.map((banner: { image_url: string }) => banner.image_url)
+      );
     }
+    setLoading(false);
   };
 
-  const fetchPackages = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/packages`);
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      setPackages(data);
-      setFilteredPackages(data);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unknown error');
-    } finally {
-      setLoading(false);
+  const handleFetchPackages = async () => {
+    const response = await fetchPackages();
+    if (response.error) {
+      setError(response.error);
+    } else {
+      setPackages(response);
+      setFilteredPackages(response);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchPackages();
-    fetchBanners();
+    handleFetchPackages();
+    handleFetchBanners();
   }, []);
 
   useEffect(() => {
@@ -204,16 +200,15 @@ const Home: React.FC = () => {
     });
 
     if (!result.isConfirmed) return;
-
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/packages/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json',
-        },
+    const response = await deletePackage(id);
+    if (response.error) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Hubo un problema al eliminar el paquete.',
+        icon: 'error',
+        confirmButtonColor: '#d33',
       });
-
+    } else {
       setPackages((prevPackages) =>
         prevPackages.filter((pkg) => pkg.id !== id)
       );
@@ -223,14 +218,6 @@ const Home: React.FC = () => {
         text: 'El paquete ha sido eliminado con éxito.',
         icon: 'success',
         confirmButtonColor: '#127ca8',
-      });
-    } catch (error) {
-      console.error('Error eliminando el paquete:', error);
-      Swal.fire({
-        title: 'Error',
-        text: 'Hubo un problema al eliminar el paquete.',
-        icon: 'error',
-        confirmButtonColor: '#d33',
       });
     }
   };
