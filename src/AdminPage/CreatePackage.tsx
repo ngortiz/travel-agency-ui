@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { Box, TextField } from '@mui/material';
-import { getPackage } from '../api/package';
+import { getPackage, savePackage } from '../api/package';
 
 const FormTitle = styled.h2`
   font-size: 2.5rem;
@@ -120,7 +120,7 @@ const ImagePreview = styled.img`
 `;
 
 const CreatePackage: React.FC = () => {
-  const formRef = useRef<HTMLFormElement>(null); // Ref para el formulario
+  const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -141,9 +141,8 @@ const CreatePackage: React.FC = () => {
     country: true,
     included_services: true,
   });
-
   const [image, setImage] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // muestra la vista previa
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [notification, setNotification] = useState<{
@@ -161,19 +160,17 @@ const CreatePackage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      // fetch a la api con el id
       fetchPackageData(id);
       setIsEditMode(true);
     }
-  }, []);
+  }, [id]);
 
   useEffect(() => {
-    // Generar la URL de vista previa al seleccionar una nueva imagen
     if (image) {
       const objectUrl = URL.createObjectURL(image);
       setPreviewUrl(objectUrl);
 
-      return () => URL.revokeObjectURL(objectUrl); // Limpiar la URL creada
+      return () => URL.revokeObjectURL(objectUrl);
     }
     setPreviewUrl(null);
   }, [image]);
@@ -181,26 +178,30 @@ const CreatePackage: React.FC = () => {
   const fetchPackageData = async (id: string) => {
     try {
       const data = await getPackage(id);
-      if (data.error) {
-        console.error('Error al obtener paquete:', data.error);
+      if (!data || data.error) {
+        console.error('Error al obtener paquete:', data?.error);
         return;
       }
 
       setFormData({
-        name: data.name,
-        description: data.description,
-        cost_price: data.cost_price.toString(),
-        sell_price: data.sell_price.toString(),
-        city: data.city,
-        country: data.country,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        included_services: data.included_services.join(','),
-        non_included_services: data.non_included_services.join(','),
-        image_url: data.image_url,
+        name: data.name || '',
+        description: data.description || '',
+        cost_price: data.cost_price?.toString() || '',
+        sell_price: data.sell_price?.toString() || '',
+        city: data.city || '',
+        country: data.country || '',
+        start_date: data.start_date || '',
+        end_date: data.end_date || '',
+        included_services: Array.isArray(data.included_services)
+          ? data.included_services.join(', ')
+          : '',
+        non_included_services: Array.isArray(data.non_included_services)
+          ? data.non_included_services.join(', ')
+          : '',
+        image_url: data.image_url || '',
       });
     } catch (error) {
-      console.error('Error en fetchPackageData:', error);
+      console.error('Error al obtener el paquete:', error);
     }
   };
 
@@ -211,7 +212,6 @@ const CreatePackage: React.FC = () => {
 
     setFormData({ ...formData, [name]: value });
 
-    // Validación de longitud mínima y máxima
     if (
       name === 'name' ||
       name === 'description' ||
@@ -232,18 +232,17 @@ const CreatePackage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const isFormValid =
-      formData.name.length >= 4 &&
-      formData.name.length <= 50 &&
-      formData.description.length >= 4 &&
-      formData.description.length <= 50 &&
-      formData.city.length >= 4 &&
-      formData.city.length <= 50 &&
-      formData.country.length >= 4 &&
-      formData.country.length <= 50;
-    formData.included_services.length >= 4 &&
-      formData.included_services.length <= 50;
+      formData.name.trim().length >= 4 &&
+      formData.name.trim().length <= 50 &&
+      formData.description.trim().length >= 4 &&
+      formData.description.trim().length <= 50 &&
+      formData.city.trim().length >= 4 &&
+      formData.city.trim().length <= 50 &&
+      formData.country.trim().length >= 4 &&
+      formData.country.trim().length <= 50 &&
+      formData.included_services.trim().length >= 4 &&
+      formData.included_services.trim().length <= 50;
 
     if (!isFormValid) {
       setNotification({
@@ -252,42 +251,19 @@ const CreatePackage: React.FC = () => {
           'Por favor, revisa los campos. Algunos no cumplen con los requisitos.',
         type: 'error',
       });
-      setTimeout(
-        () => setNotification({ show: false, message: '', type: 'success' }),
-        3000
-      );
       return;
     }
-
     if (!image && !formData.image_url) {
       setNotification({
         show: true,
         message: 'Por favor, selecciona o conserva una imagen.',
         type: 'error',
       });
-      setTimeout(
-        () => setNotification({ show: false, message: '', type: 'success' }),
-        3000
-      );
       return;
     }
 
     try {
       setLoading(true);
-
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        setNotification({
-          show: true,
-          message: 'Token no encontrado. Por favor inicia sesión nuevamente.',
-          type: 'error',
-        });
-        setTimeout(
-          () => setNotification({ show: false, message: '', type: 'success' }),
-          3000
-        );
-        return;
-      }
 
       const imageBase64 = image ? await convertImageToBase64(image) : null;
 
@@ -307,47 +283,30 @@ const CreatePackage: React.FC = () => {
                 data: imageBase64,
                 format: image ? image.type.split('/')[1].toUpperCase() : '',
               }
-            : formData.image_url // Si no hay imagen nueva, se usa la URL existente
+            : formData.image_url
             ? { url: formData.image_url }
             : null,
         },
       };
 
-      const url = isEditMode
-        ? `${import.meta.env.VITE_API_URL}/packages/${id}`
-        : `${import.meta.env.VITE_API_URL}/packages`;
-      const response = await fetch(url, {
-        method: isEditMode ? 'PUT' : 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await savePackage(
+        id ? parseInt(id) : null,
+        payload,
+        isEditMode
+      );
 
-      if (!response.ok) {
-        const errorDetails = await response.json().catch(() => null);
-        setNotification({
-          show: true,
-          message: `Error: ${errorDetails?.message || response.statusText}`,
-          type: 'error',
-        });
-        setTimeout(
-          () => setNotification({ show: false, message: '', type: 'success' }),
-          3000
-        );
+      if (response.error) {
+        setNotification({ show: true, message: response.error, type: 'error' });
         return;
       }
-
       setNotification({
         show: true,
-        message: id
+        message: isEditMode
           ? 'Paquete actualizado exitosamente.'
           : 'Paquete creado exitosamente.',
         type: 'success',
       });
 
-      // Limpia el formulario usando el ref
       formRef.current?.reset();
       setFormData({
         name: '',
@@ -504,7 +463,6 @@ const CreatePackage: React.FC = () => {
         </FormGroup>
         <FormGroup>
           <Label>Servicios Incluidos:</Label>
-
           <Input
             type='text'
             name='included_services'
@@ -539,7 +497,6 @@ const CreatePackage: React.FC = () => {
           </SubmitButton>
         )}
       </Form>
-
       {notification.show && (
         <Notification show={notification.show} type={notification.type}>
           {notification.message}
@@ -548,5 +505,4 @@ const CreatePackage: React.FC = () => {
     </Box>
   );
 };
-
 export default CreatePackage;
