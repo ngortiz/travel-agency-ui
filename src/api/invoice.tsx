@@ -43,7 +43,7 @@ const fetchInvoices = async () => {
 const fetchInvoiceDetails = async (
   invoiceId: number | string
 ): Promise<Invoice | null> => {
-  const parsedInvoiceId = Number(invoiceId); // Convertimos a número
+  const parsedInvoiceId = Number(invoiceId);
   if (isNaN(parsedInvoiceId)) return null; // Validamos que sea un número válido
 
   try {
@@ -67,27 +67,6 @@ const fetchInvoiceDetails = async (
   }
 };
 
-const handleInvoiceView = async (invoiceId: number) => {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Error al obtener los detalles de la factura.');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error en handleViewInvoice:', error);
-    throw error;
-  }
-};
 const deleteInvoice = async (invoiceId: number) => {
   if (!Number.isInteger(invoiceId)) {
     console.error('ID de factura inválido:', invoiceId);
@@ -120,10 +99,4 @@ const deleteInvoice = async (invoiceId: number) => {
   }
 };
 
-export {
-  createInvoice,
-  fetchInvoices,
-  fetchInvoiceDetails,
-  handleInvoiceView,
-  deleteInvoice,
-};
+export { createInvoice, fetchInvoices, fetchInvoiceDetails, deleteInvoice };
