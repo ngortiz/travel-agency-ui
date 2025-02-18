@@ -176,27 +176,19 @@ const RegisterIncomeExpense: React.FC = () => {
   };
   useEffect(() => {
     const getInvoiceDetails = async () => {
-      if (invoiceId) {
-        const parsedInvoiceId = Number(invoiceId); // Convertimos invoiceId a número
-        if (isNaN(parsedInvoiceId)) return; // Evitamos errores si la conversión falla
+      if (!invoiceId) return;
+      const invoice = await fetchInvoiceDetails(invoiceId);
 
-        try {
-          const invoice = await fetchInvoiceDetails(parsedInvoiceId);
-          if (invoice) {
-            setSelectedInvoice(invoice);
-            setFormData(invoice.invoice.headers);
-            setTransactionDetails(invoice.invoice.details);
-            calculateTotals();
-            setIsDisplayMode(true);
-          }
-        } catch (error) {
-          setNotification({
-            show: true,
-            message: 'Error al obtener los detalles de la factura.',
-            type: 'error',
-          });
-        }
+      if ('error' in invoice) {
+        setNotification({ show: true, message: invoice.error, type: 'error' });
+        return;
       }
+
+      setSelectedInvoice(invoice);
+      setFormData(invoice.invoice.headers);
+      setTransactionDetails(invoice.invoice.details);
+      calculateTotals();
+      setIsDisplayMode(true);
     };
 
     getInvoiceDetails();
@@ -222,14 +214,16 @@ const RegisterIncomeExpense: React.FC = () => {
   };
   const localhandleInvoiceView = async (invoiceId: number) => {
     const invoice = await fetchInvoiceDetails(invoiceId);
-    if (!invoice) return;
+    if ('error' in invoice) {
+      setNotification({ show: true, message: invoice.error, type: 'error' });
+      return;
+    }
 
     setSelectedInvoice(invoice);
     setFormData(invoice.invoice.headers);
 
-    // Mapeamos los detalles
     const details: TransactionDetail[] = invoice.invoice.details.map(
-      (detail: TransactionDetail) => ({
+      (detail) => ({
         quantity: Number(detail.quantity),
         unit_price: Number(detail.unit_price),
         tax_type: detail.tax_type,
@@ -293,39 +287,35 @@ const RegisterIncomeExpense: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await createInvoice({
-        invoice: {
-          headers: formData,
-          details: transactionDetails,
-        },
-      });
-      setNotification({
-        show: true,
-        message: 'Factura guardada exitosamente.',
-        type: 'success',
-      });
-      setFormData({
-        customer: '',
-        ruc: '',
-        email: '',
-        condition: '',
-        transaction_type: '',
-        document_type: '',
-        document_number: '',
-        date: '',
-      });
-      setTransactionDetails([
-        { quantity: 0, unit_price: 0, tax_type: '', description: '' },
-      ]);
-      setInvoices(await fetchInvoices());
-    } catch (error) {
-      setNotification({
-        show: true,
-        message: 'Error al guardar la factura.',
-        type: 'error',
-      });
-    }
+    await createInvoice({
+      invoice: {
+        headers: formData,
+        details: transactionDetails,
+      },
+    });
+
+    setNotification({
+      show: true,
+      message: 'Factura guardada exitosamente.',
+      type: 'success',
+    });
+
+    setFormData({
+      customer: '',
+      ruc: '',
+      email: '',
+      condition: '',
+      transaction_type: '',
+      document_type: '',
+      document_number: '',
+      date: '',
+    });
+
+    setTransactionDetails([
+      { quantity: 0, unit_price: 0, tax_type: '', description: '' },
+    ]);
+
+    setInvoices(await fetchInvoices());
   };
 
   useEffect(() => {

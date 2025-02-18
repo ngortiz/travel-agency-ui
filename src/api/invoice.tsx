@@ -16,9 +16,9 @@ const createInvoice = async (payload: any) => {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en createInvoice:', error);
-    throw error;
+    return { error: error.message };
   }
 };
 
@@ -35,16 +35,16 @@ const fetchInvoices = async () => {
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en fetchInvoices:', error);
-    throw error;
+    return { error: error.message };
   }
 };
 const fetchInvoiceDetails = async (
   invoiceId: number | string
-): Promise<Invoice | null> => {
+): Promise<Invoice | { error: string }> => {
   const parsedInvoiceId = Number(invoiceId);
-  if (isNaN(parsedInvoiceId)) return null; // Validamos que sea un número válido
+  if (isNaN(parsedInvoiceId)) return { error: 'ID de factura inválido' }; // Validamos que sea un número válido
 
   try {
     const response = await fetch(
@@ -61,9 +61,9 @@ const fetchInvoiceDetails = async (
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en fetchInvoiceDetails:', error);
-    return null;
+    return { error: error.message };
   }
 };
 
