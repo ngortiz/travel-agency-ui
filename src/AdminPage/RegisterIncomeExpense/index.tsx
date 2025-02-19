@@ -3,27 +3,19 @@ import InvoiceTable from './InvoiceTable';
 import FormComponent from './FormComponent';
 import { Box, Snackbar, Alert, Button } from '@mui/material';
 import { Invoice } from '../../interfaces/invoice';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { TransactionDetail } from '../../interfaces/transactionDetail';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// Desformatear el número a un formato limpio para cálculos
-const unformatNumber = (value: string): number => {
-  const numericValue = value.replace(/[^\d.]/g, '');
-  return parseFloat(numericValue);
-};
+import {
+  createInvoice,
+  fetchInvoices,
+  fetchInvoice,
+  deleteInvoice,
+} from '../../api/invoice';
+import Swal from 'sweetalert2';
 
 const RegisterIncomeExpense: React.FC = () => {
-  const { invoiceId } = useParams<{ invoiceId: string }>(); // Obtener el ID desde la URL
-  const navigate = useNavigate(); // Usamos el hook de navegación
-
-  useEffect(() => {
-    if (invoiceId) {
-      invoiceId;
-    }
-  }, [invoiceId]);
-
-  // Estado para visualizar/ocultar la tabla
+  const { invoiceId } = useParams<{ invoiceId: string }>();
+  const navigate = useNavigate();
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -71,10 +63,6 @@ const RegisterIncomeExpense: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isDisplayMode, setIsDisplayMode] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [invoiceIdToDelete, setInvoiceIdToDelete] = useState<number | null>(
-    null
-  );
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -172,245 +160,138 @@ const RegisterIncomeExpense: React.FC = () => {
     setTransactionDetails(updatedDetails);
     calculateTotals();
   };
+
+  const getInvoice = async () => {
+    if (!invoiceId) return;
+    const invoice = await fetchInvoice(parseInt(invoiceId));
+
+    if ('error' in invoice) {
+      setNotification({ show: true, message: invoice.error, type: 'error' });
+      return;
+    }
+
+    setSelectedInvoice(invoice);
+    setFormData(invoice.invoice.headers);
+    setTransactionDetails(invoice.invoice.details);
+    calculateTotals();
+    setIsDisplayMode(true);
+  };
   useEffect(() => {
-    const fetchInvoiceDetails = async () => {
-      if (invoiceId) {
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-              },
-            }
-          );
+    getInvoice();
+  }, [invoiceId]);
 
-          if (response.ok) {
-            const invoice: Invoice = await response.json();
-            setSelectedInvoice(invoice);
-            setFormData(invoice.invoice.headers);
-
-            const details = invoice.invoice.details.map((detail) => ({
-              quantity: Number(detail.quantity),
-              unit_price: Number(detail.unit_price),
-              tax_type: detail.tax_type,
-              description: detail.description,
-            }));
-
-            setTransactionDetails(details);
-            calculateTotals(); // Recalcular totales al cargar los detalles
-
-            setIsDisplayMode(true);
-          } else {
-            setNotification({
-              show: true,
-              message: 'Error al obtener los detalles de la factura.',
-              type: 'error',
-            });
-          }
-        } catch (error) {
-          setNotification({
-            show: true,
-            message: 'Error al obtener los detalles de la factura.',
-            type: 'error',
-          });
-        }
-      }
-    };
-
-    fetchInvoiceDetails();
-  }, [invoiceId]); // Asegúrate de que esto se ejecute cada vez que cambie `invoiceId`
-
-  const fetchInvoices = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-        },
-      });
-      if (response.ok) {
-        const data: Invoice[] = await response.json();
-        setInvoices(data);
-      } else {
-        setNotification({
-          show: true,
-          message: 'Error al obtener las facturas.',
-          type: 'error',
-        });
-      }
-    } catch (error) {
+  const getInvoices = async () => {
+    const invoices = await fetchInvoices();
+    if (invoices.error) {
       setNotification({
         show: true,
         message: 'Error al obtener las facturas.',
         type: 'error',
       });
+      return;
     }
+    setInvoices(invoices);
   };
+  useEffect(() => {
+    getInvoices();
+  }, []);
+
   const handleBackButton = () => {
-    navigate('/admin/reports'); // Redirige a la página de reportes
+    navigate('/admin/reports');
+  };
+  const localHandleInvoiceView = async (invoiceId: number) => {
+    const invoice = await fetchInvoice(invoiceId);
+    if ('error' in invoice) {
+      setNotification({ show: true, message: invoice.error, type: 'error' });
+      return;
+    }
+
+    setSelectedInvoice(invoice);
+    setFormData(invoice.invoice.headers);
+
+    const details: TransactionDetail[] = invoice.invoice.details.map(
+      (detail) => ({
+        quantity: Number(detail.quantity),
+        unit_price: Number(detail.unit_price),
+        tax_type: detail.tax_type,
+        description: detail.description,
+      })
+    );
+
+    setTransactionDetails(details);
+    calculateTotals();
+    setIsDisplayMode(true);
   };
 
-  const handleViewInvoice = async (invoiceId: number) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-          },
-        }
-      );
+  const handleDeleteInvoice = async (invoiceId: number) => {
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!result.isConfirmed) return;
+    const response = await deleteInvoice(invoiceId);
 
-      if (response.ok) {
-        const invoice: Invoice = await response.json();
-
-        setSelectedInvoice(invoice);
-        setFormData(invoice.invoice.headers);
-
-        const details = invoice.invoice.details.map((detail) => ({
-          quantity: Number(detail.quantity),
-          unit_price: Number(detail.unit_price),
-          tax_type: detail.tax_type,
-          description: detail.description,
-        }));
-
-        setTransactionDetails(details);
-        calculateTotals();
-
-        setIsDisplayMode(true);
-      } else {
-        throw new Error('Error al obtener los detalles de la factura.');
-      }
-    } catch (error) {
-      setNotification({
-        show: true,
-        message: 'Error al obtener los detalles de la factura.',
-        type: 'error',
+    if (!response || response.error) {
+      Swal.fire({
+        title: 'Error',
+        text: response.error,
+        icon: 'error',
+        confirmButtonColor: '#d33',
       });
-    }
-  };
-
-  const handleOpenModal = (invoiceId: number) => {
-    setInvoiceIdToDelete(invoiceId); // Guardamos el ID de la factura a eliminar
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setInvoiceIdToDelete(null); // Resetear el ID al cerrar el modal
-  };
-
-  const handleConfirmDelete = () => {
-    if (invoiceIdToDelete !== null) {
-      deleteInvoice(invoiceIdToDelete);
-    }
-    setIsModalOpen(false); // Cerrar el modal después de confirmar
-  };
-
-  const deleteInvoice = async (invoiceId: number) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-          },
-        }
+    } else {
+      setInvoices((prevInvoices) =>
+        prevInvoices.filter(
+          (invoice) => invoice.invoice.headers.id !== invoiceId
+        )
       );
-
-      if (response.ok) {
-        setNotification({
-          show: true,
-          message: 'Factura eliminada exitosamente.',
-          type: 'success',
-        });
-        fetchInvoices();
-      } else {
-        setNotification({
-          show: true,
-          message: 'Error al eliminar la factura.',
-          type: 'error',
-        });
-      }
-    } catch (error) {
-      setNotification({
-        show: true,
-        message: 'Error al eliminar la factura.',
-        type: 'error',
+      Swal.fire({
+        title: '¡Eliminado!',
+        text: 'La factura ha sido eliminada con éxito.',
+        icon: 'success',
+        confirmButtonColor: '#127ca8',
       });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      setNotification({
-        show: true,
-        message: 'Por favor, complete todos los campos obligatorios.',
-        type: 'error',
-      });
-      return;
-    }
-
-    const payload = {
+    await createInvoice({
       invoice: {
         headers: formData,
-        details: transactionDetails.map((detail) => ({
-          quantity: unformatNumber(detail.quantity.toString()),
-          unit_price: unformatNumber(detail.unit_price.toString()),
-          description: detail.description,
-          tax_type: detail.tax_type,
-        })),
+        details: transactionDetails,
       },
-    };
+    });
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+    setNotification({
+      show: true,
+      message: 'Factura guardada exitosamente.',
+      type: 'success',
+    });
 
-      if (response.ok) {
-        setNotification({
-          show: true,
-          message: 'Factura guardada exitosamente.',
-          type: 'success',
-        });
-        setFormData({
-          customer: '',
-          ruc: '',
-          email: '',
-          condition: '',
-          transaction_type: '',
-          document_type: '',
-          document_number: '',
-          date: '',
-        });
-        setTransactionDetails([
-          { quantity: 0, unit_price: 0, tax_type: '', description: '' },
-        ]);
-        setTotals({ exempt: 0, tax5: 0, tax10: 0, total: 0 });
-        fetchInvoices();
-      } else {
-        setNotification({
-          show: true,
-          message: 'Error al guardar la factura.',
-          type: 'error',
-        });
-      }
-    } catch (error) {
-      setNotification({
-        show: true,
-        message: 'Error al guardar la factura.',
-        type: 'error',
-      });
-    }
+    setFormData({
+      customer: '',
+      ruc: '',
+      email: '',
+      condition: '',
+      transaction_type: '',
+      document_type: '',
+      document_number: '',
+      date: '',
+    });
+
+    setTransactionDetails([
+      { quantity: 0, unit_price: 0, tax_type: '', description: '' },
+    ]);
+
+    const invoices = await fetchInvoices();
+    if (invoices.error) return;
+    setInvoices(invoices);
   };
 
   useEffect(() => {
@@ -486,21 +367,13 @@ const RegisterIncomeExpense: React.FC = () => {
         </Button>
       )}
 
-      {/* Mostrar la tabla de facturación solo si NO estamos en modo de visualización */}
       {!isDisplayMode && (
         <InvoiceTable
           invoices={invoices}
-          deleteInvoice={handleOpenModal}
-          onViewInvoice={handleViewInvoice}
+          deleteInvoice={handleDeleteInvoice}
+          onViewInvoice={localHandleInvoiceView}
         />
       )}
-
-      {/* Confirmar la eliminación de la factura en un modal */}
-      <ConfirmDeleteModal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmDelete}
-      />
     </Box>
   );
 };
