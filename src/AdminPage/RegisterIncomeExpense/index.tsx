@@ -13,7 +13,6 @@ import {
 } from '../../api/invoice';
 import Swal from 'sweetalert2';
 
-// Desformatear el número a un formato limpio para cálculos
 const unformatNumber = (value: string): number => {
   const numericValue = value.replace(/[^\d.]/g, '');
   return parseFloat(numericValue);
@@ -28,8 +27,6 @@ const RegisterIncomeExpense: React.FC = () => {
       invoiceId;
     }
   }, [invoiceId]);
-
-  // Estado para visualizar/ocultar la tabla
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -210,7 +207,7 @@ const RegisterIncomeExpense: React.FC = () => {
     loadInvoices();
   }, []);
   const handleBackButton = () => {
-    navigate('/admin/reports'); // Redirige a la página de reportes
+    navigate('/admin/reports');
   };
   const localhandleInvoiceView = async (invoiceId: number) => {
     const invoice = await fetchInvoiceDetails(invoiceId);
