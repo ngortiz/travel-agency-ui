@@ -8,25 +8,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   createInvoice,
   fetchInvoices,
-  fetchInvoiceDetails,
+  fetchInvoice,
   deleteInvoice,
 } from '../../api/invoice';
 import Swal from 'sweetalert2';
 
-const unformatNumber = (value: string): number => {
-  const numericValue = value.replace(/[^\d.]/g, '');
-  return parseFloat(numericValue);
-};
-
 const RegisterIncomeExpense: React.FC = () => {
-  const { invoiceId } = useParams<{ invoiceId: string }>(); // Obtener el ID desde la URL
-  const navigate = useNavigate(); //  El hook de navegación
-
-  useEffect(() => {
-    if (invoiceId) {
-      invoiceId;
-    }
-  }, [invoiceId]);
+  const { invoiceId } = useParams<{ invoiceId: string }>();
+  const navigate = useNavigate();
 
   const [notification, setNotification] = useState<{
     show: boolean;
@@ -171,46 +160,47 @@ const RegisterIncomeExpense: React.FC = () => {
     setTransactionDetails(updatedDetails);
     calculateTotals();
   };
+
+  const getInvoice = async () => {
+    if (!invoiceId) return;
+    const invoice = await fetchInvoice(parseInt(invoiceId));
+
+    if ('error' in invoice) {
+      setNotification({ show: true, message: invoice.error, type: 'error' });
+      return;
+    }
+
+    setSelectedInvoice(invoice);
+    setFormData(invoice.invoice.headers);
+    setTransactionDetails(invoice.invoice.details);
+    calculateTotals();
+    setIsDisplayMode(true);
+  };
   useEffect(() => {
-    const getInvoiceDetails = async () => {
-      if (!invoiceId) return;
-      const invoice = await fetchInvoiceDetails(invoiceId);
-
-      if ('error' in invoice) {
-        setNotification({ show: true, message: invoice.error, type: 'error' });
-        return;
-      }
-
-      setSelectedInvoice(invoice);
-      setFormData(invoice.invoice.headers);
-      setTransactionDetails(invoice.invoice.details);
-      calculateTotals();
-      setIsDisplayMode(true);
-    };
-
-    getInvoiceDetails();
+    getInvoice();
   }, [invoiceId]);
 
+  const getInvoices = async () => {
+    const invoices = await fetchInvoices();
+    if (invoices.error) {
+      setNotification({
+        show: true,
+        message: 'Error al obtener las facturas.',
+        type: 'error',
+      });
+      return;
+    }
+    setInvoices(invoices);
+  };
   useEffect(() => {
-    const loadInvoices = async () => {
-      try {
-        const data = await fetchInvoices();
-        setInvoices(data);
-      } catch (error) {
-        setNotification({
-          show: true,
-          message: 'Error al obtener las facturas.',
-          type: 'error',
-        });
-      }
-    };
-    loadInvoices();
+    getInvoices();
   }, []);
+
   const handleBackButton = () => {
     navigate('/admin/reports');
   };
-  const localhandleInvoiceView = async (invoiceId: number) => {
-    const invoice = await fetchInvoiceDetails(invoiceId);
+  const localHandleInvoiceView = async (invoiceId: number) => {
+    const invoice = await fetchInvoice(invoiceId);
     if ('error' in invoice) {
       setNotification({ show: true, message: invoice.error, type: 'error' });
       return;
@@ -234,50 +224,37 @@ const RegisterIncomeExpense: React.FC = () => {
   };
 
   const handleDeleteInvoice = async (invoiceId: number) => {
-    try {
-      const result = await Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-      });
+    const result = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!result.isConfirmed) return;
+    const response = await deleteInvoice(invoiceId);
 
-      if (!result.isConfirmed) return;
-
-      const response = await deleteInvoice(invoiceId); // Llamar a la API
-
-      if (!response || response.error) {
-        Swal.fire({
-          title: 'Error',
-          text: 'Hubo un problema al eliminar la factura.',
-          icon: 'error',
-          confirmButtonColor: '#d33',
-        });
-      } else {
-        setInvoices((prevInvoices) =>
-          prevInvoices.filter(
-            (invoice) => invoice.invoice.headers.id !== invoiceId
-          )
-        );
-
-        Swal.fire({
-          title: '¡Eliminado!',
-          text: 'La factura ha sido eliminada con éxito.',
-          icon: 'success',
-          confirmButtonColor: '#127ca8',
-        });
-      }
-    } catch (error) {
-      console.error('Error al eliminar la factura:', error);
+    if (!response || response.error) {
       Swal.fire({
         title: 'Error',
-        text: 'Ocurrió un error inesperado.',
+        text: response.error,
         icon: 'error',
         confirmButtonColor: '#d33',
+      });
+    } else {
+      setInvoices((prevInvoices) =>
+        prevInvoices.filter(
+          (invoice) => invoice.invoice.headers.id !== invoiceId
+        )
+      );
+      Swal.fire({
+        title: '¡Eliminado!',
+        text: 'La factura ha sido eliminada con éxito.',
+        icon: 'success',
+        confirmButtonColor: '#127ca8',
       });
     }
   };
@@ -312,7 +289,9 @@ const RegisterIncomeExpense: React.FC = () => {
       { quantity: 0, unit_price: 0, tax_type: '', description: '' },
     ]);
 
-    setInvoices(await fetchInvoices());
+    const invoices = await fetchInvoices();
+    if (invoices.error) return;
+    setInvoices(invoices);
   };
 
   useEffect(() => {
@@ -388,12 +367,11 @@ const RegisterIncomeExpense: React.FC = () => {
         </Button>
       )}
 
-      {/* Mostrar la tabla de facturación solo si NO estamos en modo de visualización */}
       {!isDisplayMode && (
         <InvoiceTable
           invoices={invoices}
           deleteInvoice={handleDeleteInvoice}
-          onViewInvoice={localhandleInvoiceView}
+          onViewInvoice={localHandleInvoiceView}
         />
       )}
     </Box>

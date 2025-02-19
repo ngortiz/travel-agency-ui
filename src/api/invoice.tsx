@@ -40,15 +40,13 @@ const fetchInvoices = async () => {
     return { error: error.message };
   }
 };
-const fetchInvoiceDetails = async (
-  invoiceId: number | string
+const fetchInvoice = async (
+  invoiceId: number
 ): Promise<Invoice | { error: string }> => {
-  const parsedInvoiceId = Number(invoiceId);
-  if (isNaN(parsedInvoiceId)) return { error: 'ID de factura inválido' }; // Validamos que sea un número válido
-
+  if (isNaN(invoiceId)) return { error: 'ID de factura inválido' };
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/invoices/${parsedInvoiceId}`,
+      `${import.meta.env.VITE_API_URL}/invoices/${invoiceId}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
@@ -68,10 +66,7 @@ const fetchInvoiceDetails = async (
 };
 
 const deleteInvoice = async (invoiceId: number) => {
-  if (!Number.isInteger(invoiceId)) {
-    console.error('ID de factura inválido:', invoiceId);
-    return { success: false, error: 'ID de factura inválido' };
-  }
+  if (isNaN(invoiceId)) return { error: 'ID de factura inválido' };
 
   try {
     console.log('Eliminando factura con ID:', invoiceId);
@@ -99,4 +94,4 @@ const deleteInvoice = async (invoiceId: number) => {
   }
 };
 
-export { createInvoice, fetchInvoices, fetchInvoiceDetails, deleteInvoice };
+export { createInvoice, fetchInvoices, fetchInvoice, deleteInvoice };
