@@ -9,9 +9,11 @@ La plataforma está diseñada para facilitar la búsqueda y compra de paquetes t
 <img width="966" alt="Screenshot 2025-02-20 at 10 11 46" src="https://github.com/user-attachments/assets/fef21ff2-07df-4a41-9cfe-2985bbdaf095" />
 
 
+
 🔹 Panel Administrativo (Solo para empleados)
 
  En este panel el usuario puede gestionar la plataforma con las siguientes funcionalidades:
+ 
  
 📦 Crear y administrar paquetes turísticos (subir imágenes, precios y descripciones).
 
