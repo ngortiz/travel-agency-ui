@@ -236,7 +236,7 @@ const CreatePackage: React.FC = () => {
       formData.name.trim().length >= 4 &&
       formData.name.trim().length <= 50 &&
       formData.description.trim().length >= 4 &&
-      formData.description.trim().length <= 50 &&
+      formData.description.trim().length <= 300 &&
       formData.city.trim().length >= 4 &&
       formData.city.trim().length <= 50 &&
       formData.country.trim().length >= 4 &&

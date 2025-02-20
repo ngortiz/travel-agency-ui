@@ -105,6 +105,8 @@ interface InvoiceData {
   totals: { exempt: number; tax5: number; tax10: number; total: number };
 }
 
+const validationInput = 'Por favor, complete este campo.';
+
 interface FormComponentProps {
   formData: any;
   transactionDetails: TransactionDetail[];
@@ -132,6 +134,14 @@ const FormComponent: React.FC<FormComponentProps> = ({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const normalizeNumber = (value: any) =>
     typeof value === 'string' ? parseFloat(value.replace(/\./g, '')) : value;
+  const [isSaving, setIsSaving] = useState(false); // Estado para el botón
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+  }>({
+    open: false,
+    message: '',
+  });
 
   const validateFields = () => {
     const errors: FieldErrors = {};
@@ -146,19 +156,30 @@ const FormComponent: React.FC<FormComponentProps> = ({
         errors[`quantity_${index}`] = true;
       if (!detail.unit_price || detail.unit_price <= 0)
         errors[`unit_price_${index}`] = true;
-      if (!detail.tax_type) errors[`tax_type${index}`] = true;
+      if (!detail.tax_type) errors[`tax_type_${index}`] = true;
     });
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateFields()) {
-      handleSubmit(e);
-    } else {
+    if (!validateFields()) {
       alert('Por favor, complete todos los campos obligatorios.');
+      return;
+    }
+
+    setIsSaving(true); // Deshabilitar el botón y cambiar el texto
+
+    try {
+      await handleSubmit(e);
+      setNotification({ open: true, message: 'Factura guardada exitosamente' });
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      setNotification({ open: true, message: 'Error al guardar la factura' });
+    } finally {
+      setIsSaving(false); // Habilitar el botón nuevamente
     }
   };
 
@@ -172,8 +193,28 @@ const FormComponent: React.FC<FormComponentProps> = ({
   );
   const [showPDF, setShowPDF] = useState(false);
 
-  const handleInvoiceSelection = (invoice: InvoiceData) => {
+  const handleInvoicePdf = () => {
+    const invoice = {
+      document_number: formData.document_number,
+      company: formData.company || 'GLOBE TRAVEL',
+      address: formData.address || 'Constitución Nacional casi Antequera, 6000',
+      phone: formData.phone || '0984 489517',
+      customer: formData.customer,
+      ruc: formData.ruc,
+      date: formData.date,
+      email: formData.email,
+      document_type: formData.document_type,
+      condition: formData.condition,
+      details: transactionDetails.map((detail) => ({
+        description: detail.description,
+        quantity: detail.quantity,
+        unit_price: detail.unit_price,
+      })),
+      totals: totals,
+    };
+
     setSelectedInvoice(invoice);
+    setShowPDF(true);
   };
 
   return (
@@ -219,7 +260,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 fullWidth
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -239,7 +280,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 fullWidth
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -260,7 +301,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 required
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -284,7 +325,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 required
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -307,7 +348,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 required
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -328,7 +369,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 required
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -354,7 +395,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 InputLabelProps={{ shrink: true }}
                 onInvalid={(e) =>
                   (e.target as HTMLInputElement).setCustomValidity(
-                    'Por favor, complete este campo.'
+                    validationInput
                   )
                 }
                 onInput={(e) =>
@@ -387,7 +428,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     required
                     onInvalid={(e) =>
                       (e.target as HTMLInputElement).setCustomValidity(
-                        'Por favor, complete este campo.'
+                        validationInput
                       )
                     }
                     onInput={(e) =>
@@ -408,7 +449,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     required
                     onInvalid={(e) =>
                       (e.target as HTMLInputElement).setCustomValidity(
-                        'Por favor, complete este campo.'
+                        validationInput
                       )
                     }
                     onInput={(e) =>
@@ -430,7 +471,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     required
                     onInvalid={(e) =>
                       (e.target as HTMLInputElement).setCustomValidity(
-                        'Por favor, complete este campo.'
+                        validationInput
                       )
                     }
                     onInput={(e) =>
@@ -467,7 +508,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     rows={3}
                     onInvalid={(e) =>
                       (e.target as HTMLInputElement).setCustomValidity(
-                        'Por favor, complete este campo.'
+                        validationInput
                       )
                     }
                     onInput={(e) =>
@@ -533,38 +574,13 @@ const FormComponent: React.FC<FormComponentProps> = ({
         </SectionPaper>
         <Box display='flex' justifyContent='center' mt={3}>
           {isDisplayMode ? (
-            <StyledButton
-              type='button'
-              onClick={() => {
-                const invoice = {
-                  document_number: formData.document_number,
-                  company: formData.company || 'GLOBE TRAVEL',
-                  address:
-                    formData.address ||
-                    'Constitución Nacional casi Antequera, 6000',
-                  phone: formData.phone || '0984 489517',
-                  customer: formData.customer,
-                  ruc: formData.ruc,
-                  date: formData.date,
-                  email: formData.email,
-                  document_type: formData.document_type,
-                  condition: formData.condition,
-                  details: transactionDetails.map((detail) => ({
-                    description: detail.description,
-                    quantity: detail.quantity,
-                    unit_price: detail.unit_price,
-                  })),
-                  totals: totals,
-                };
-
-                setSelectedInvoice(invoice);
-                setShowPDF(true);
-              }}
-            >
+            <StyledButton type='button' onClick={handleInvoicePdf}>
               Descargar en PDF
             </StyledButton>
           ) : (
-            <StyledButton type='submit'>Guardar</StyledButton>
+            <StyledButton type='submit' disabled={isSaving}>
+              {isSaving ? 'Guardando...' : 'Guardar'}
+            </StyledButton>
           )}
 
           {showPDF && selectedInvoice && (

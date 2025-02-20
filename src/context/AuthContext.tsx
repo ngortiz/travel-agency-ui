@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -34,7 +35,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const login = (token: string) => {
-    const expirationTime = new Date().getTime() + 24 * 60 * 60 * 1000; // 24 horas
+    const expirationTime = jwtDecode(token); // 24 horas
     localStorage.setItem('authToken', token);
     localStorage.setItem('tokenExpiration', expirationTime.toString());
     setIsAuthenticated(true);
