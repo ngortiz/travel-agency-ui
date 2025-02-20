@@ -10,6 +10,7 @@ La plataforma está diseñada para facilitar la búsqueda y compra de paquetes t
 
 
 
+
 🔹 Panel Administrativo (Solo para empleados)
 
  En este panel el usuario puede gestionar la plataforma con las siguientes funcionalidades:
