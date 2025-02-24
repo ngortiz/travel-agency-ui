@@ -316,6 +316,7 @@ const RegisterIncomeExpense: React.FC = () => {
         onClose={() =>
           setNotification({ show: false, message: '', type: 'success' })
         }
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={() =>
