@@ -1,8 +1,18 @@
-# React + TypeScript + Vite
-Proyecto Travel Agency :
+# Proyecto Travel Agency
+
 La plataforma está diseñada para facilitar la búsqueda y compra de paquetes turísticos para los clientes y proporcionar una gestión eficiente de la empresa a través de un panel administrativo.
 
-🔹 Página principal (Home - Cliente)
+## Tecnología
+React, TypeScript, Vite, Material-UI, Styled Compoment y Amplify Hosting.
+
+## Sitio de Prueba
+Url: https://main.d12dj80b8bgal1.amplifyapp.com
+
+Usuario: ngortiz21@gmail.com
+
+Password: floppy2024
+
+## Página principal (Home - Cliente)
 * Los clientes pueden explorar los paquetes turísticos disponibles, que incluyen información sobre destinos, precios y servicios incluidos.
 * Un buscador permite filtrar paquetes según destino, precio o fechas.
   
@@ -11,7 +21,7 @@ La plataforma está diseñada para facilitar la búsqueda y compra de paquetes t
 
 
 
-🔹 Panel Administrativo (Solo para empleados)
+## Panel Administrativo (Solo para empleados)
 
  En este panel el usuario puede gestionar la plataforma con las siguientes funcionalidades:
  
@@ -33,53 +43,8 @@ La plataforma está diseñada para facilitar la búsqueda y compra de paquetes t
 
 <img width="1278" alt="Screenshot 2025-02-20 at 10 09 23" src="https://github.com/user-attachments/assets/10524cf7-d80d-41a2-b2e1-caeb94c12362" />
 
-Tecnología
-React, TypeScript, Vite, Material-UI, Styled Compoment y Amplify Hosting.
 
 
 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
